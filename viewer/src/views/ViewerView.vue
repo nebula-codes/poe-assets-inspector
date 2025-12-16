@@ -158,12 +158,35 @@
     document.getElementById('file-upload')?.click()
   }
 
+  // Handle files passed from dashboard
+  async function handleOpenLocalFiles(event: CustomEvent<FileList>) {
+    const files = event.detail
+    if (!files?.length) return
+
+    for (const file of Array.from(files)) {
+      const buffer = await file.arrayBuffer()
+      const fileContent = new Uint8Array(buffer)
+      const id = `file-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+
+      openFiles.value.push({
+        id,
+        title: file.name,
+        fullPath: `local/${file.name}`,
+        fileContent,
+        scope: effectScope(),
+      })
+      activeFileId.value = id
+    }
+  }
+
   onMounted(() => {
     window.addEventListener('open-local-file', handleOpenLocalFile)
+    window.addEventListener('open-local-files', handleOpenLocalFiles as unknown as EventListener)
   })
 
   onUnmounted(() => {
     window.removeEventListener('open-local-file', handleOpenLocalFile)
+    window.removeEventListener('open-local-files', handleOpenLocalFiles as unknown as EventListener)
     // Clean up scopes
     openFiles.value.forEach((f) => f.scope.stop())
   })

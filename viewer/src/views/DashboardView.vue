@@ -1,22 +1,23 @@
 <script setup lang="ts">
-  import { ref, computed, inject, onMounted } from 'vue'
+  import { ref, computed, inject } from 'vue'
   import { useRouter } from 'vue-router'
   import {
     FileText,
     Database,
     FolderOpen,
-    Upload,
     Clock,
-    TrendingUp,
     Layers,
     ArrowRight,
     Globe,
     HardDrive,
   } from 'lucide-vue-next'
   import type { BundleIndex } from '@/app/patchcdn/index-store'
+  import { useModalStore } from '@/stores'
+  import CdnImportDialog from '@/components/dialogs/CdnImportDialog.vue'
 
   const router = useRouter()
   const index = inject<BundleIndex>('bundle-index')!
+  const modalStore = useModalStore()
 
   // Stats
   const stats = computed(() => {
@@ -43,6 +44,31 @@
   // Recent files (mock for now - could be stored in localStorage)
   const recentFiles = ref<{ name: string; path: string; date: string }[]>([])
 
+  // File input ref for local file opening
+  const fileInputRef = ref<HTMLInputElement | null>(null)
+
+  function openLocalFile() {
+    fileInputRef.value?.click()
+  }
+
+  function handleFileSelect(event: Event) {
+    const input = event.target as HTMLInputElement
+    if (input.files?.length) {
+      // Navigate to viewer with the file
+      router.push('/viewer')
+      // Dispatch event to open the file in viewer
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('open-local-files', { detail: input.files }))
+      }, 100)
+    }
+  }
+
+  function openCdnDialog() {
+    modalStore.openModal({
+      component: CdnImportDialog,
+    })
+  }
+
   // Quick actions
   const quickActions = [
     {
@@ -50,14 +76,14 @@
       description: 'Import .datc64 file from your computer',
       icon: FolderOpen,
       color: 'bg-blue-600/20 text-blue-400',
-      action: () => window.dispatchEvent(new CustomEvent('open-local-file')),
+      action: openLocalFile,
     },
     {
       title: 'Import from CDN',
       description: 'Download files from PoE patch servers',
       icon: Globe,
       color: 'bg-green-600/20 text-green-400',
-      action: () => window.dispatchEvent(new CustomEvent('open-cdn-dialog')),
+      action: openCdnDialog,
     },
     {
       title: 'Browse All Tables',
@@ -103,6 +129,16 @@
 
 <template>
   <div class="space-y-6">
+    <!-- Hidden file input for local file opening -->
+    <input
+      ref="fileInputRef"
+      type="file"
+      accept=".datc64,.dat,.dat64"
+      multiple
+      class="hidden"
+      @change="handleFileSelect"
+    />
+
     <!-- Welcome Section -->
     <div class="card">
       <div class="flex items-center justify-between p-6">

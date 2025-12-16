@@ -3,6 +3,7 @@
   import { provide } from 'vue'
   import TheSidebar from '@/components/layout/TheSidebar.vue'
   import TheHeader from '@/components/layout/TheHeader.vue'
+  import ModalContainer from '@/components/dialogs/ModalContainer.vue'
   import { BundleLoader } from '@/app/patchcdn/cache'
   import { BundleIndex } from '@/app/patchcdn/index-store'
   import { DatSchemasDatabase } from '@/app/dat-viewer/db'
@@ -35,5 +36,8 @@
         <RouterView />
       </main>
     </div>
+
+    <!-- Global Modal Container -->
+    <ModalContainer />
   </div>
 </template>
