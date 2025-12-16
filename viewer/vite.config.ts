@@ -1,32 +1,30 @@
-import path from 'path'
+import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
   build: {
-    target: 'esnext'
+    target: 'esnext',
   },
   worker: {
-    format: 'es'
+    format: 'es',
   },
-  // development only
   optimizeDeps: {
-    exclude: ['pathofexile-dat', 'ooz-wasm']
+    exclude: ['pathofexile-dat', 'ooz-wasm'],
   },
-  // development only
   server: {
     fs: {
-      allow: ['..']
-    }
+      allow: ['..'],
+    },
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
-    }
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
   },
   define: {
-    'import.meta.env.APP_VERSION': JSON.stringify(process.env.GITHUB_SHA || 'dev')
-  }
+    'import.meta.env.APP_VERSION': JSON.stringify(process.env.GITHUB_SHA || 'dev'),
+    'import.meta.env.APP_NAME': JSON.stringify('PoE DAT Studio'),
+  },
 })

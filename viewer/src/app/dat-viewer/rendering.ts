@@ -3,17 +3,30 @@ import type { RenderByte } from './rendering/byte-columns.js'
 import type { Viewer } from './Viewer.js'
 import { renderCellContent, drawByteView, drawArrayVarData } from './rendering/content.js'
 
+// Theme colors - dark mode
+export const COLORS = {
+  background: '#0f172a',
+  backgroundAlt: '#1e293b',
+  text: '#e2e8f0',
+  textMuted: '#94a3b8',
+  border: '#334155',
+  selection: 'rgba(14, 165, 233, 0.2)',
+  selectionText: '#38bdf8',
+  shadow: 'rgba(0, 0, 0, 0.3)',
+}
+
 /* eslint-disable */
-export const FONT_FAMILY    = 'Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
-export const FONT_SIZE      = 14
-export const CHAR_WIDTH     = getMonoFontWidth(FONT_SIZE, FONT_FAMILY)
-export const XBASE_HEIGHT   = getFontBaseLine(FONT_SIZE, FONT_FAMILY)
-export const LINE_HEIGHT    = 19
-export const ROWNUM_MIN_LENGTH    = 3
-export const BORDER_WIDTH         = 1
-export const COLUMN_STAT_HEIGHT   = 7
-export const COLUMN_BYTE_HEIGHT   = Math.round(CHAR_WIDTH * 3)
-export const HEADERS_HEIGHT       = COLUMN_BYTE_HEIGHT * 2 + COLUMN_STAT_HEIGHT * 3
+export const FONT_FAMILY =
+  '"JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
+export const FONT_SIZE = 14
+export const CHAR_WIDTH = getMonoFontWidth(FONT_SIZE, FONT_FAMILY)
+export const XBASE_HEIGHT = getFontBaseLine(FONT_SIZE, FONT_FAMILY)
+export const LINE_HEIGHT = 19
+export const ROWNUM_MIN_LENGTH = 3
+export const BORDER_WIDTH = 1
+export const COLUMN_STAT_HEIGHT = 7
+export const COLUMN_BYTE_HEIGHT = Math.round(CHAR_WIDTH * 3)
+export const HEADERS_HEIGHT = COLUMN_BYTE_HEIGHT * 2 + COLUMN_STAT_HEIGHT * 3
 /* eslint-enable */
 
 // console.log(getBaseLine(14), 'CR: 11  |  FF: 12')
@@ -21,20 +34,20 @@ export const HEADERS_HEIGHT       = COLUMN_BYTE_HEIGHT * 2 + COLUMN_STAT_HEIGHT 
 // console.log(getBaseLine(19), 'CR: 14  |  FF: 14')
 // console.log(getBaseLine(20), 'CR: 14  |  FF: 15')
 
-export function rowNumLength (rowCount: number) {
+export function rowNumLength(rowCount: number) {
   const maxLen = String(rowCount - 1).length
   return Math.max(maxLen, ROWNUM_MIN_LENGTH)
 }
 
-export function rowsNumWidth (rowCount: number) {
+export function rowsNumWidth(rowCount: number) {
   return Math.ceil(rowNumLength(rowCount) * CHAR_WIDTH)
 }
 
-export function rowsOverlayWidth (rowCount: number) {
-  return rowsNumWidth(rowCount) + (8 * 2)
+export function rowsOverlayWidth(rowCount: number) {
+  return rowsNumWidth(rowCount) + 8 * 2
 }
 
-function getMonoFontWidth (fontSize: number, fontFamily: string): number {
+function getMonoFontWidth(fontSize: number, fontFamily: string): number {
   const canvasEl = document.createElement('canvas')
   const context = canvasEl.getContext('2d')!
   context.font = `${fontSize}px ${fontFamily}`
@@ -42,25 +55,26 @@ function getMonoFontWidth (fontSize: number, fontFamily: string): number {
   return metrics.width
 }
 
-function getFontBaseLine (fontSize: number, fontFamily: string): number {
+function getFontBaseLine(fontSize: number, fontFamily: string): number {
   const canvasEl = document.createElement('canvas')
   const context = canvasEl.getContext('2d')!
   context.font = `${fontSize}px ${fontFamily}`
   context.textBaseline = 'middle'
   const metrics = context.measureText('0')
-  const xBase = (fontSize / 2) +
-    ((metrics.alphabeticBaseline !== undefined)
+  const xBase =
+    fontSize / 2 +
+    (metrics.alphabeticBaseline !== undefined
       ? -metrics.alphabeticBaseline
       : metrics.actualBoundingBoxDescent)
 
   return xBase
 }
 
-export function getBaseLine (lineHeight: number): number {
-  return /* Math.round */ (1 + (lineHeight - FONT_SIZE) / 2 + XBASE_HEIGHT)
+export function getBaseLine(lineHeight: number): number {
+  return /* Math.round */ 1 + (lineHeight - FONT_SIZE) / 2 + XBASE_HEIGHT
 }
 
-export function drawRows (params: {
+export function drawRows(params: {
   left: number
   paintWidth: number
   top: number
@@ -71,18 +85,15 @@ export function drawRows (params: {
 }) {
   const { ctx } = params
 
-  ctx.fillStyle = '#fff'
+  ctx.fillStyle = COLORS.background
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
   // draw selected row
   if (params.viewer.selectedRow.value !== null) {
     const selectedIdx = params.rows.indexOf(params.viewer.selectedRow.value)
     if (selectedIdx !== -1) {
-      ctx.fillStyle = '#bee3f8'
-      ctx.fillRect(
-        0, params.top + (selectedIdx * LINE_HEIGHT),
-        ctx.canvas.width, LINE_HEIGHT
-      )
+      ctx.fillStyle = COLORS.selection
+      ctx.fillRect(0, params.top + selectedIdx * LINE_HEIGHT, ctx.canvas.width, LINE_HEIGHT)
     }
   }
 
@@ -94,7 +105,7 @@ export function drawRows (params: {
 
   // draw content
   ctx.font = `${FONT_SIZE}px ${FONT_FAMILY}`
-  ctx.fillStyle = '#000'
+  ctx.fillStyle = COLORS.text
 
   const renderers = getColumnRenderers(params.viewer, params.left, params.left + params.paintWidth)
 
@@ -109,37 +120,31 @@ export function drawRows (params: {
     ctx.restore()
   }
 
-  // draw inset shadow
+  // draw inset shadow (subtle for dark theme)
   {
     const grdH = ctx.createLinearGradient(0, -16, 0, 4)
-    grdH.addColorStop(0, 'rgba(254,254,254,0.6)')
+    grdH.addColorStop(0, COLORS.shadow)
     grdH.addColorStop(1, 'transparent')
     ctx.fillStyle = grdH
     ctx.fillRect(0, 0, ctx.canvas.width, 6)
 
     const grdV = ctx.createLinearGradient(-16, 0, 4, 0)
-    grdV.addColorStop(0, 'rgba(254,254,254,0.5)')
+    grdV.addColorStop(0, COLORS.shadow)
     grdV.addColorStop(1, 'transparent')
     ctx.fillStyle = grdV
     ctx.fillRect(0, 0, 6, ctx.canvas.height)
   }
 }
 
-function drawColumns (ctx: CanvasRenderingContext2D, columns: readonly RenderByte[]) {
+function drawColumns(ctx: CanvasRenderingContext2D, columns: readonly RenderByte[]) {
   for (const col of columns) {
     if (col.selected) {
-      ctx.fillStyle = '#bee3f8'
-      ctx.fillRect(
-        col.leftPx + (col.border ? BORDER_WIDTH : 0), 0,
-        col.widthPx, ctx.canvas.height
-      )
+      ctx.fillStyle = COLORS.selection
+      ctx.fillRect(col.leftPx + (col.border ? BORDER_WIDTH : 0), 0, col.widthPx, ctx.canvas.height)
     }
     if (col.border) {
-      ctx.fillStyle = '#bdbdbd'
-      ctx.fillRect(
-        col.leftPx, 0,
-        BORDER_WIDTH, ctx.canvas.height
-      )
+      ctx.fillStyle = COLORS.border
+      ctx.fillRect(col.leftPx, 0, BORDER_WIDTH, ctx.canvas.height)
     }
   }
 }
@@ -151,7 +156,11 @@ interface ColumnContentRenderer {
   exec: DrawColumnContentFn
 }
 
-export function getColumnRenderers (viewer: Viewer, paintBegin: number, paintEnd: number): ColumnContentRenderer[] {
+export function getColumnRenderers(
+  viewer: Viewer,
+  paintBegin: number,
+  paintEnd: number
+): ColumnContentRenderer[] {
   const headers = viewer.headers.value
   const stats = viewer.columnStats.value
   const datFile = viewer.datFile
@@ -161,7 +170,7 @@ export function getColumnRenderers (viewer: Viewer, paintBegin: number, paintEnd
   for (const header of headers) {
     const sizes = columnSizes(header)
 
-    if ((left + sizes.borderWidth) >= paintBegin) {
+    if (left + sizes.borderWidth >= paintBegin) {
       if (header.type.byteView) {
         if (header.type.byteView.array) {
           res.push({
@@ -169,7 +178,7 @@ export function getColumnRenderers (viewer: Viewer, paintBegin: number, paintEnd
             width: sizes.paddingWidth,
             exec: (ctx: CanvasRenderingContext2D, rows: number[]) => {
               drawArrayVarData(ctx, header, datFile, rows, stats[header.offset])
-            }
+            },
           })
         } else {
           const hexBegin = Math.max(0, Math.floor((paintBegin - left) / (CHAR_WIDTH * 3)))
@@ -179,7 +188,7 @@ export function getColumnRenderers (viewer: Viewer, paintBegin: number, paintEnd
             width: sizes.paddingWidth,
             exec: (ctx: CanvasRenderingContext2D, rows: number[]) => {
               drawByteView(ctx, header, datFile, rows, hexBegin, hexEnd)
-            }
+            },
           })
         }
       } else {
@@ -190,15 +199,20 @@ export function getColumnRenderers (viewer: Viewer, paintBegin: number, paintEnd
             if (header.type.key?.table && header.type.key.viewColumn) {
               const referenced = viewer.referencedTables.value.get(header.type.key.table)!.value
               if (referenced) {
-                const referencedHeader = referenced.headers.find(h => h.name === header.type.key!.viewColumn)
+                const referencedHeader = referenced.headers.find(
+                  (h) => h.name === header.type.key!.viewColumn
+                )
                 if (referencedHeader) {
-                  renderCellContent(ctx, header, datFile, rows, { header: referencedHeader, datFile: referenced.datFile })
+                  renderCellContent(ctx, header, datFile, rows, {
+                    header: referencedHeader,
+                    datFile: referenced.datFile,
+                  })
                   return
                 }
               }
             }
             renderCellContent(ctx, header, datFile, rows)
-          }
+          },
         })
       }
     }
@@ -210,18 +224,17 @@ export function getColumnRenderers (viewer: Viewer, paintBegin: number, paintEnd
   return res
 }
 
-export function columnSizes (header: Readonly<Header>) {
-  const textLength = (header.type.byteView && !header.type.byteView.array)
-    ? header.length * 3 - 1
-    : header.textLength!
+export function columnSizes(header: Readonly<Header>) {
+  const textLength =
+    header.type.byteView && !header.type.byteView.array ? header.length * 3 - 1 : header.textLength!
   return {
     paddingWidth: Math.ceil((textLength + 1) * CHAR_WIDTH),
     borderWidth: Math.ceil((textLength + 1) * CHAR_WIDTH) + (header.offset > 0 ? BORDER_WIDTH : 0),
-    hasBorder: header.offset > 0
+    hasBorder: header.offset > 0,
   }
 }
 
-export function getRowWidth (headers: readonly Header[]): number {
+export function getRowWidth(headers: readonly Header[]): number {
   let size = 0
   for (const header of headers) {
     const sizes = columnSizes(header)

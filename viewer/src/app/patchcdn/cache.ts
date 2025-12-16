@@ -11,16 +11,16 @@ export class BundleLoader {
     received: 0,
     bundleName: '',
     isDownloading: false,
-    active: null as Promise<unknown> | null
+    active: null as Promise<unknown> | null,
   })
 
-  private readonly registry = new FinalizationRegistry<string>(name => {
+  private readonly registry = new FinalizationRegistry<string>((name) => {
     console.debug(`[Bundle] garbage-collected, name: "${name}"`)
   })
 
   private readonly weakCache = new ExpiryMap<string, ArrayBufferLike>(20 * 1000)
 
-  async setPatch (version: string) {
+  async setPatch(version: string) {
     if (this.state.active) {
       await this.state.active
     }
@@ -31,17 +31,21 @@ export class BundleLoader {
     this.patchVer = version
   }
 
-  get patchVersion () { return this.patchVer }
+  get patchVersion() {
+    return this.patchVer
+  }
 
   readonly progress = computed(() => {
-    return (this.state.isDownloading) ? {
-      totalSize: this.state.totalSize,
-      received: this.state.received,
-      bundleName: this.state.bundleName
-    } : null
+    return this.state.isDownloading
+      ? {
+          totalSize: this.state.totalSize,
+          received: this.state.received,
+          bundleName: this.state.bundleName,
+        }
+      : null
   })
 
-  async fetchFile (name: string): Promise<ArrayBufferLike> {
+  async fetchFile(name: string): Promise<ArrayBufferLike> {
     let bundle = this.weakCache.get(name)
     if (bundle && bundle.byteLength !== 0) {
       console.log(`[Bundle] name: "${name}", source: memory.`)
@@ -71,7 +75,7 @@ export class BundleLoader {
     }
   }
 
-  private async _fetchFile (name: string): Promise<ArrayBufferLike> {
+  private async _fetchFile(name: string): Promise<ArrayBufferLike> {
     const { state, patchVer } = this
     const path = `${patchVer}/${BUNDLE_DIR}/${name}`
     const cache = await window.caches.open('bundles')
@@ -114,12 +118,15 @@ export class BundleLoader {
         state.isDownloading = false
       }
 
-      await cache.put(path, new Response(buf, {
-        headers: {
-          'content-length': String(buf.byteLength),
-          'content-type': 'application/octet-stream'
-        }
-      }))
+      await cache.put(
+        path,
+        new Response(buf.buffer as ArrayBuffer, {
+          headers: {
+            'content-length': String(buf.byteLength),
+            'content-type': 'application/octet-stream',
+          },
+        })
+      )
       return buf.buffer
     }
     return await res.arrayBuffer()
