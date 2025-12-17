@@ -294,7 +294,7 @@
 
   .datv-header-btn {
     @apply text-dark-600 dark:text-dark-300;
-    width: 100%;
+    width: calc(100% - 8px);
     height: 100%;
     text-align: center;
     white-space: nowrap;
@@ -314,10 +314,9 @@
     position: absolute;
     right: 0;
     top: 0;
-    width: 6px;
+    width: 8px;
     height: 100%;
     cursor: col-resize;
-    z-index: 10;
     @apply bg-transparent;
 
     &:hover {
