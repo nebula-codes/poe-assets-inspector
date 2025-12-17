@@ -65,6 +65,12 @@
       toggle: settingsStore.toggleCache,
     },
   ])
+
+  const copyFormatOptions = [
+    { value: 'json' as const, label: 'JSON' },
+    { value: 'csv' as const, label: 'CSV' },
+    { value: 'tsv' as const, label: 'TSV (Tab-separated)' },
+  ]
 </script>
 
 <template>
@@ -196,6 +202,57 @@
               :class="[
                 'absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform',
                 setting.enabled ? 'translate-x-5' : 'translate-x-0',
+              ]"
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Viewer -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="text-lg font-medium text-dark-100">Data Viewer</h2>
+      </div>
+      <div class="space-y-6 p-6">
+        <!-- Copy Format -->
+        <div>
+          <label class="text-sm font-medium text-dark-200">Copy Format</label>
+          <p class="mt-1 text-sm text-dark-500">Format used when copying rows with Ctrl+C</p>
+          <div class="mt-3 flex gap-3">
+            <button
+              v-for="option in copyFormatOptions"
+              :key="option.value"
+              :class="[
+                'flex flex-1 items-center justify-center gap-2 rounded-lg border-2 px-4 py-2 text-sm transition-colors',
+                settingsStore.settings.copyFormat === option.value
+                  ? 'border-primary-500 bg-primary-600/10 text-primary-400'
+                  : 'border-dark-700 text-dark-400 hover:border-dark-600 hover:text-dark-200',
+              ]"
+              @click="settingsStore.setCopyFormat(option.value)"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Highlight Selected Row -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-medium text-dark-200">Highlight Selected Row</h3>
+            <p class="text-sm text-dark-500">Highlight the currently selected row in the viewer</p>
+          </div>
+          <button
+            :class="[
+              'relative h-6 w-11 rounded-full transition-colors',
+              settingsStore.settings.highlightSelectedRow ? 'bg-primary-600' : 'bg-dark-600',
+            ]"
+            @click="settingsStore.toggleHighlightSelectedRow"
+          >
+            <span
+              :class="[
+                'absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform',
+                settingsStore.settings.highlightSelectedRow ? 'translate-x-5' : 'translate-x-0',
               ]"
             />
           </button>

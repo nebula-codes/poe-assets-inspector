@@ -20,7 +20,7 @@
       >
         <canvas ref="canvasRef" @click="handleCanvasClick" />
       </canvas-scroll>
-      <div :class="$style.rowsOverlay" :style="rowsOverlayStyle">
+      <div v-if="showLineNumbers" :class="$style.rowsOverlay" :style="rowsOverlayStyle">
         <div class="absolute" :style="{ transform: `translate(0, ${renderItems.top}px)` }">
           <div
             v-for="(rowIdx, i) in renderItems.ids"
@@ -48,12 +48,13 @@
     watch,
     ref,
     onMounted,
+    onUnmounted,
     inject,
     EffectScope,
   } from 'vue'
   import ResizeObserver from '@/ResizeObserver.vue'
   import CanvasScroll from '@/CanvasScroll.vue'
-  import { type Viewer, createViewer } from '../Viewer.js'
+  import { type Viewer, createViewer, exportAllRows } from '../Viewer.js'
   import ViewerActions from './Actions.vue'
   import ViewerHead from './ViewerHead.vue'
   import HeaderProps from './HeaderProps.vue'
@@ -62,6 +63,7 @@
   import { renderHeaderCols } from '../rendering/header-columns.js'
   import type { BundleIndex } from '@/app/patchcdn/index-store.js'
   import type { DatSchemasDatabase } from '@/app/dat-viewer/db.js'
+  import { useSettingsStore } from '@/stores'
 
   export default defineComponent({
     components: { ResizeObserver, CanvasScroll, ViewerActions, ViewerHead, HeaderProps },
@@ -86,6 +88,7 @@
     setup(props, ctx) {
       const index = inject<BundleIndex>('bundle-index')!
       const db = inject<DatSchemasDatabase>('dat-schemas')!
+      const settingsStore = useSettingsStore()
 
       let viewer: Viewer
       if (props.kaState) {
@@ -101,8 +104,60 @@
       const canvasScroll = ref<{
         scrollTo(x: number | undefined, y: number | undefined): void
       } | null>(null)
+
+      // Keyboard shortcut handler for copy
+      function handleKeyDown(e: KeyboardEvent) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+          if (viewer.selectedRow.value !== null) {
+            e.preventDefault()
+            const data = exportAllRows(viewer.headers.value, viewer.datFile)
+            const row = data[viewer.selectedRow.value]
+            if (row) {
+              const format = settingsStore.settings.copyFormat
+              let text: string
+              if (format === 'csv') {
+                const headers = Object.keys(row)
+                text =
+                  headers.join(',') +
+                  '\n' +
+                  headers
+                    .map((h) => {
+                      const val = row[h]
+                      if (val === null || val === undefined) return ''
+                      if (typeof val === 'string') return `"${val.replace(/"/g, '""')}"`
+                      if (Array.isArray(val)) return `"${JSON.stringify(val).replace(/"/g, '""')}"`
+                      return String(val)
+                    })
+                    .join(',')
+              } else if (format === 'tsv') {
+                const headers = Object.keys(row)
+                text =
+                  headers.join('\t') +
+                  '\n' +
+                  headers
+                    .map((h) => {
+                      const val = row[h]
+                      if (val === null || val === undefined) return ''
+                      if (Array.isArray(val)) return JSON.stringify(val)
+                      return String(val)
+                    })
+                    .join('\t')
+              } else {
+                text = JSON.stringify(row, null, 2)
+              }
+              navigator.clipboard.writeText(text)
+            }
+          }
+        }
+      }
+
       onMounted(() => {
         canvasScroll.value!.scrollTo(viewer.scrollPos.x, viewer.scrollPos.y)
+        window.addEventListener('keydown', handleKeyDown)
+      })
+
+      onUnmounted(() => {
+        window.removeEventListener('keydown', handleKeyDown)
       })
 
       const rowIndices = computed(() => {
@@ -211,21 +266,29 @@
         selectedRow.value = selectedRow.value !== realIdx ? realIdx : null
       }
 
+      const showLineNumbers = computed(() => settingsStore.settings.showLineNumbers)
+      const effectiveRowsOverlayWidth = computed(() =>
+        showLineNumbers.value ? rowsOverlayWidth.value : 0
+      )
+
       return {
         headerBlockStyle: computed(() => ({
           height: rendering.HEADERS_HEIGHT + 'px',
           width: paintWidth.value + 'px',
         })),
         headerOverlayContentStyle: computed(() => ({
-          left: rowsOverlayWidth.value + 'px',
+          left: effectiveRowsOverlayWidth.value + 'px',
           height: rendering.HEADERS_HEIGHT + 'px',
-          width: rowsWidth.value + 'px',
+          width: (showLineNumbers.value ? rowsWidth.value : paintWidth.value) + 'px',
         })),
         scrollableStyle: computed(() => ({
           top: rendering.HEADERS_HEIGHT + 'px',
-          left: rowsOverlayWidth.value + 'px',
+          left: effectiveRowsOverlayWidth.value + 'px',
         })),
-        scrollablePaintSize: computed(() => ({ width: rowsWidth.value, height: rowsHeight.value })),
+        scrollablePaintSize: computed(() => ({
+          width: showLineNumbers.value ? rowsWidth.value : paintWidth.value,
+          height: rowsHeight.value,
+        })),
         scrollableFullSize: computed(() => ({
           width: rowsFullWidth.value,
           height: rowsFullHeight.value,
@@ -238,13 +301,16 @@
           fontSize: rendering.FONT_SIZE + 'px',
           lineHeight: rendering.LINE_HEIGHT + 'px',
         })),
+        showLineNumbers,
         handleScroll,
         handleResize,
         renderItems,
         canvasRef,
         renderColumns,
         scrollLeft: computed(() => scrollPos.x),
-        rowsWidth: computed(() => Math.min(rowsFullWidth.value, rowsWidth.value)),
+        rowsWidth: computed(() =>
+          Math.min(rowsFullWidth.value, showLineNumbers.value ? rowsWidth.value : paintWidth.value)
+        ),
         LINE_HEIGHT: rendering.LINE_HEIGHT,
         canvasScroll,
         rowsNumberWidth: rendering.rowsNumWidth(viewer.datFile.rowCount) + 'px',

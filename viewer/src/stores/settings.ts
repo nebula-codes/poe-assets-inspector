@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 
 export type Theme = 'dark' | 'light' | 'system'
 
@@ -11,16 +11,21 @@ export interface AppSettings {
   autoAnalyze: boolean
   cacheEnabled: boolean
   maxRecentFiles: number
+  // Viewer specific settings
+  highlightSelectedRow: boolean
+  copyFormat: 'json' | 'csv' | 'tsv'
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
   theme: 'dark',
-  fontSize: 13,
+  fontSize: 14,
   showLineNumbers: true,
   wordWrap: false,
   autoAnalyze: true,
   cacheEnabled: true,
   maxRecentFiles: 10,
+  highlightSelectedRow: true,
+  copyFormat: 'json',
 }
 
 const STORAGE_KEY = 'poe-dat-studio-settings'
@@ -94,6 +99,21 @@ export const useSettingsStore = defineStore('settings', () => {
     settings.value = { ...DEFAULT_SETTINGS }
   }
 
+  // Viewer settings
+  function toggleHighlightSelectedRow() {
+    settings.value.highlightSelectedRow = !settings.value.highlightSelectedRow
+  }
+
+  function setCopyFormat(format: 'json' | 'csv' | 'tsv') {
+    settings.value.copyFormat = format
+  }
+
+  // Computed values for CSS variables
+  const cssVariables = computed(() => ({
+    '--viewer-font-size': `${settings.value.fontSize}px`,
+    '--viewer-line-height': `${Math.round(settings.value.fontSize * 1.35)}px`,
+  }))
+
   // Initialize theme on load
   applyTheme(settings.value.theme)
 
@@ -106,12 +126,15 @@ export const useSettingsStore = defineStore('settings', () => {
 
   return {
     settings,
+    cssVariables,
     setTheme,
     setFontSize,
     toggleLineNumbers,
     toggleWordWrap,
     toggleAutoAnalyze,
     toggleCache,
+    toggleHighlightSelectedRow,
+    setCopyFormat,
     resetSettings,
   }
 })
