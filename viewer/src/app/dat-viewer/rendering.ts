@@ -3,8 +3,8 @@ import type { RenderByte } from './rendering/byte-columns.js'
 import type { Viewer } from './Viewer.js'
 import { renderCellContent, drawByteView, drawArrayVarData } from './rendering/content.js'
 
-// Theme colors - dark mode
-export const COLORS = {
+// Theme colors - supports both light and dark mode
+const DARK_COLORS = {
   background: '#0f172a',
   backgroundAlt: '#1e293b',
   text: '#e2e8f0',
@@ -15,7 +15,30 @@ export const COLORS = {
   shadow: 'rgba(0, 0, 0, 0.3)',
 }
 
-/* eslint-disable */
+const LIGHT_COLORS = {
+  background: '#ffffff',
+  backgroundAlt: '#f8fafc',
+  text: '#1e293b',
+  textMuted: '#64748b',
+  border: '#e2e8f0',
+  selection: 'rgba(14, 165, 233, 0.15)',
+  selectionText: '#0284c7',
+  shadow: 'rgba(0, 0, 0, 0.1)',
+}
+
+// Function to detect if dark mode is active
+export function isDarkMode(): boolean {
+  return document.documentElement.classList.contains('dark')
+}
+
+// Get current theme colors
+export function getColors() {
+  return isDarkMode() ? DARK_COLORS : LIGHT_COLORS
+}
+
+// For backwards compatibility, export COLORS that updates based on theme
+export const COLORS = DARK_COLORS
+
 export const FONT_FAMILY =
   '"JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
 export const FONT_SIZE = 14
@@ -27,7 +50,6 @@ export const BORDER_WIDTH = 1
 export const COLUMN_STAT_HEIGHT = 7
 export const COLUMN_BYTE_HEIGHT = Math.round(CHAR_WIDTH * 3)
 export const HEADERS_HEIGHT = COLUMN_BYTE_HEIGHT * 2 + COLUMN_STAT_HEIGHT * 3
-/* eslint-enable */
 
 // console.log(getBaseLine(14), 'CR: 11  |  FF: 12')
 // console.log(getBaseLine(18), 'CR: 13  |  FF: 14')
@@ -84,15 +106,16 @@ export function drawRows(params: {
   ctx: CanvasRenderingContext2D
 }) {
   const { ctx } = params
+  const colors = getColors()
 
-  ctx.fillStyle = COLORS.background
+  ctx.fillStyle = colors.background
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
   // draw selected row
   if (params.viewer.selectedRow.value !== null) {
     const selectedIdx = params.rows.indexOf(params.viewer.selectedRow.value)
     if (selectedIdx !== -1) {
-      ctx.fillStyle = COLORS.selection
+      ctx.fillStyle = colors.selection
       ctx.fillRect(0, params.top + selectedIdx * LINE_HEIGHT, ctx.canvas.width, LINE_HEIGHT)
     }
   }
@@ -100,12 +123,12 @@ export function drawRows(params: {
   // drawColumns
   ctx.save()
   ctx.translate(-params.left, 0)
-  drawColumns(ctx, params.columns)
+  drawColumns(ctx, params.columns, colors)
   ctx.restore()
 
   // draw content
   ctx.font = `${FONT_SIZE}px ${FONT_FAMILY}`
-  ctx.fillStyle = COLORS.text
+  ctx.fillStyle = colors.text
 
   const renderers = getColumnRenderers(params.viewer, params.left, params.left + params.paintWidth)
 
@@ -120,30 +143,34 @@ export function drawRows(params: {
     ctx.restore()
   }
 
-  // draw inset shadow (subtle for dark theme)
+  // draw inset shadow
   {
     const grdH = ctx.createLinearGradient(0, -16, 0, 4)
-    grdH.addColorStop(0, COLORS.shadow)
+    grdH.addColorStop(0, colors.shadow)
     grdH.addColorStop(1, 'transparent')
     ctx.fillStyle = grdH
     ctx.fillRect(0, 0, ctx.canvas.width, 6)
 
     const grdV = ctx.createLinearGradient(-16, 0, 4, 0)
-    grdV.addColorStop(0, COLORS.shadow)
+    grdV.addColorStop(0, colors.shadow)
     grdV.addColorStop(1, 'transparent')
     ctx.fillStyle = grdV
     ctx.fillRect(0, 0, 6, ctx.canvas.height)
   }
 }
 
-function drawColumns(ctx: CanvasRenderingContext2D, columns: readonly RenderByte[]) {
+function drawColumns(
+  ctx: CanvasRenderingContext2D,
+  columns: readonly RenderByte[],
+  colors: ReturnType<typeof getColors>
+) {
   for (const col of columns) {
     if (col.selected) {
-      ctx.fillStyle = COLORS.selection
+      ctx.fillStyle = colors.selection
       ctx.fillRect(col.leftPx + (col.border ? BORDER_WIDTH : 0), 0, col.widthPx, ctx.canvas.height)
     }
     if (col.border) {
-      ctx.fillStyle = COLORS.border
+      ctx.fillStyle = colors.border
       ctx.fillRect(col.leftPx, 0, BORDER_WIDTH, ctx.canvas.height)
     }
   }

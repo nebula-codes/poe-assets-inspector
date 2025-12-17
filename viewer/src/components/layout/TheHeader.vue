@@ -13,18 +13,14 @@
     File,
     Folder,
     X,
-    FileText,
-    Database,
   } from 'lucide-vue-next'
-  import { useAppStore, useSettingsStore, useSearchStore } from '@/stores'
+  import { useAppStore, useSettingsStore } from '@/stores'
   import type { BundleIndex } from '@/app/patchcdn/index-store'
-  import { exportAllRows } from '@/app/dat-viewer/Viewer'
 
   const route = useRoute()
   const router = useRouter()
   const appStore = useAppStore()
   const settingsStore = useSettingsStore()
-  const searchStore = useSearchStore()
 
   const index = inject<BundleIndex>('bundle-index')!
 
@@ -99,14 +95,12 @@
 
   // Search result types
   interface SearchResult {
-    type: 'file' | 'dir' | 'content'
+    type: 'file' | 'dir'
     path: string
     name: string
-    context?: string // For content matches
-    fileId?: string // For navigating to opened file
   }
 
-  // Search results combining files and content
+  // Search results for files and directories
   const searchResults = computed<SearchResult[]>(() => {
     const query = searchQuery.value.toLowerCase().trim()
     if (!query || query.length < 2) return []
@@ -114,37 +108,7 @@
     const results: SearchResult[] = []
     const maxResults = 50
 
-    // 1. Search content in opened files first (most relevant)
-    const openedFiles = searchStore.getOpenedFiles()
-    for (const file of openedFiles) {
-      if (results.length >= maxResults) break
-      if (!file.viewer) continue
-
-      try {
-        const rows = exportAllRows(file.viewer.headers.value, file.viewer.datFile)
-        for (let rowIdx = 0; rowIdx < rows.length && results.length < maxResults; rowIdx++) {
-          const row = rows[rowIdx]
-          for (const [key, value] of Object.entries(row)) {
-            if (value === null || value === undefined) continue
-            const strValue = String(value).toLowerCase()
-            if (strValue.includes(query)) {
-              results.push({
-                type: 'content',
-                path: file.fullPath,
-                name: file.name,
-                context: `Row ${rowIdx}: ${key} = "${String(value).slice(0, 50)}${String(value).length > 50 ? '...' : ''}"`,
-                fileId: file.id,
-              })
-              break // Only one match per row
-            }
-          }
-        }
-      } catch (e) {
-        // Skip files with errors
-      }
-    }
-
-    // 2. Search file names in index
+    // Search file names in index
     for (const filePath of allFiles.value) {
       if (results.length >= maxResults) break
       const name = filePath.split('/').pop() || filePath
@@ -153,7 +117,7 @@
       }
     }
 
-    // 3. Search directories
+    // Search directories
     for (const dirPath of allDirs.value) {
       if (results.length >= maxResults) break
       const name = dirPath.split('/').pop() || dirPath
@@ -206,13 +170,7 @@
 
   // Select a search result
   function selectResult(result: SearchResult) {
-    if (result.type === 'content') {
-      // Navigate to file with the content match
-      router.push({
-        path: '/viewer',
-        query: { file: result.path },
-      })
-    } else if (result.type === 'file') {
+    if (result.type === 'file') {
       router.push({
         path: '/viewer',
         query: { file: result.path },
@@ -395,30 +353,15 @@
             @mouseenter="selectedResultIndex = idx"
           >
             <!-- Icon based on type -->
-            <Database v-if="result.type === 'content'" class="h-4 w-4 shrink-0 text-green-500" />
-            <File v-else-if="result.type === 'file'" class="h-4 w-4 shrink-0 text-dark-500" />
+            <File v-if="result.type === 'file'" class="h-4 w-4 shrink-0 text-dark-500" />
             <Folder v-else class="h-4 w-4 shrink-0 text-amber-500" />
 
             <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-2">
-                <span
-                  class="truncate font-medium"
-                  v-html="highlightMatch(result.name, searchQuery)"
-                />
-                <span
-                  v-if="result.type === 'content'"
-                  class="shrink-0 rounded bg-green-600/20 px-1.5 py-0.5 text-xs text-green-400"
-                >
-                  Content
-                </span>
-              </div>
-              <div
-                v-if="result.context"
-                class="truncate text-xs text-green-400/70"
-                v-html="highlightMatch(result.context, searchQuery)"
+              <span
+                class="truncate font-medium"
+                v-html="highlightMatch(result.name, searchQuery)"
               />
               <div
-                v-else
                 class="truncate text-xs text-dark-500"
                 v-html="highlightMatch(result.path, searchQuery)"
               />

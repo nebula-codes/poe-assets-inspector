@@ -327,13 +327,23 @@
     overflow: hidden;
     transform: translate3d(0, 0, 0);
     contain: strict;
-    background-color: #1e293b;
-    color: #94a3b8;
     padding-left: 7px;
-    border-left: 1px solid #334155;
     padding-right: 8px;
     text-align: right;
-    box-shadow: rgba(0, 0, 0, 0.3) 0 6px 6px -6px inset;
     user-select: none;
+
+    /* Light mode */
+    background-color: #f8fafc;
+    color: #64748b;
+    border-left: 1px solid #e2e8f0;
+    box-shadow: rgba(0, 0, 0, 0.1) 0 6px 6px -6px inset;
+
+    /* Dark mode */
+    :global(.dark) & {
+      background-color: #1e293b;
+      color: #94a3b8;
+      border-left: 1px solid #334155;
+      box-shadow: rgba(0, 0, 0, 0.3) 0 6px 6px -6px inset;
+    }
   }
 </style>

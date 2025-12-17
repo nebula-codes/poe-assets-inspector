@@ -14,8 +14,7 @@
   } from 'lucide-vue-next'
   import DatViewer from '@/app/dat-viewer/components/DatViewer.vue'
   import type { BundleIndex } from '@/app/patchcdn/index-store'
-  import { useAppStore, useSearchStore } from '@/stores'
-  import type { Viewer } from '@/app/dat-viewer/Viewer'
+  import { useAppStore } from '@/stores'
 
   interface OpenFile {
     id: string
@@ -28,7 +27,6 @@
 
   const route = useRoute()
   const appStore = useAppStore()
-  const searchStore = useSearchStore()
   const index = inject<BundleIndex>('bundle-index')!
 
   // State
@@ -74,7 +72,6 @@
         scope: effectScope(),
       })
       activeFileId.value = id
-      searchStore.registerFile(id, fullPath, null)
     } catch (error) {
       console.error('Failed to load file:', error)
     } finally {
@@ -101,7 +98,6 @@
       scope: effectScope(),
     })
     activeFileId.value = id
-    searchStore.registerFile(id, fullPath, null)
     input.value = ''
   }
 
@@ -111,17 +107,9 @@
     if (idx !== -1) {
       openFiles.value[idx].scope.stop()
       openFiles.value.splice(idx, 1)
-      searchStore.unregisterFile(fileId)
       if (activeFileId.value === fileId) {
         activeFileId.value = openFiles.value[Math.min(idx, openFiles.value.length - 1)]?.id ?? null
       }
-    }
-  }
-
-  // Update search store when viewer state is created
-  function handleViewerStateUpdate(fileId: string, state: unknown) {
-    if (state) {
-      searchStore.updateViewer(fileId, state as Viewer)
     }
   }
 
@@ -164,7 +152,6 @@
       scope: effectScope(),
     })
     activeFileId.value = id
-    searchStore.registerFile(id, fullPath, null)
   }
 
   // Listen for open file events
@@ -191,7 +178,6 @@
         scope: effectScope(),
       })
       activeFileId.value = id
-      searchStore.registerFile(id, fullPath, null)
     }
   }
 
@@ -303,7 +289,6 @@
             v-model:ka-state="file.state as any"
             :args="{ fileContent: file.fileContent, fullPath: file.fullPath }"
             :ka-scope="file.scope as any"
-            @update:ka-state="handleViewerStateUpdate(file.id, $event)"
           />
         </div>
       </template>

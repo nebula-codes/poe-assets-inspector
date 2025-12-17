@@ -1,20 +1,34 @@
 <template>
   <div class="datv-header-layer">
     <div :style="headersRowStyle" class="absolute">
-      <button
+      <div
         v-for="col in headers"
         :key="col.offset"
         class="datv-header"
         :class="{ 'datv-col--border': col.border, 'datv-header--active': col.active }"
         :style="{ width: col.widthPx + 'px', transform: `translate(${col.leftPx}px, 0)` }"
-        :title="col.name == null ? 'unidentified' : col.name || 'unnamed'"
-        @click="editHeader(col.offset)"
-        @wheel="handleHeaderWheel(col.offset, $event)"
       >
-        <template v-if="col.name === null">&nbsp;</template>
-        <span v-else-if="col.name === ''" class="rounded bg-dark-600 px-1 text-dark-300">?</span>
-        <template v-else>{{ col.name }}</template>
-      </button>
+        <button
+          class="datv-header-btn"
+          :title="col.name == null ? 'unidentified' : col.name || 'unnamed'"
+          @click="editHeader(col.offset)"
+          @wheel="handleHeaderWheel(col.offset, $event)"
+        >
+          <template v-if="col.name === null">&nbsp;</template>
+          <span
+            v-else-if="col.name === ''"
+            class="rounded bg-dark-300 px-1 text-dark-600 dark:bg-dark-600 dark:text-dark-300"
+            >?</span
+          >
+          <template v-else>{{ col.name }}</template>
+        </button>
+        <!-- Resize handle -->
+        <div
+          v-if="col.name !== null"
+          class="datv-resize-handle"
+          @mousedown.prevent.stop="startResize(col.offset, $event)"
+        />
+      </div>
     </div>
     <div :style="colsRowStyle" class="absolute">
       <button
@@ -177,6 +191,47 @@
         }
       }
 
+      // Column resize functionality
+      let resizeStartX = 0
+      let resizeStartWidth = 0
+      let resizingHeader: ReturnType<typeof viewer.headers.value.find> | null = null
+
+      function startResize(offset: number, e: MouseEvent) {
+        const header = viewer.headers.value.find((h) => h.offset === offset)
+        if (!header || header.textLength == null) return
+
+        resizingHeader = header
+        resizeStartX = e.clientX
+        resizeStartWidth = header.textLength
+
+        document.addEventListener('mousemove', handleResizeMove)
+        document.addEventListener('mouseup', handleResizeEnd)
+        document.body.style.cursor = 'col-resize'
+        document.body.style.userSelect = 'none'
+      }
+
+      function handleResizeMove(e: MouseEvent) {
+        if (!resizingHeader) return
+
+        const deltaX = e.clientX - resizeStartX
+        const deltaChars = Math.round(deltaX / rendering.CHAR_WIDTH)
+        const newTextLength = Math.max(1, resizeStartWidth + deltaChars)
+
+        resizingHeader.textLength = newTextLength
+        triggerRef(viewer.headers)
+      }
+
+      function handleResizeEnd() {
+        if (resizingHeader) {
+          saveHeaders(viewer, db)
+        }
+        resizingHeader = null
+        document.removeEventListener('mousemove', handleResizeMove)
+        document.removeEventListener('mouseup', handleResizeEnd)
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+      }
+
       const headers = computed(() =>
         renderHeaderCols(
           viewer.headers.value,
@@ -192,6 +247,7 @@
         selectContinue,
         editHeader,
         handleHeaderWheel,
+        startResize,
         headersRowStyle: computed(() => ({
           transform: `translate(${-props.left}px, 0)`,
           lineHeight: rendering.COLUMN_BYTE_HEIGHT + 'px',
@@ -226,14 +282,50 @@
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
-    @apply px-1.5;
 
     &:hover {
-      @apply bg-dark-200 text-dark-900 dark:bg-dark-600 dark:text-dark-100;
+      @apply bg-dark-200 dark:bg-dark-600;
     }
 
     &.datv-header--active {
-      @apply bg-primary-100 text-primary-700 dark:bg-primary-600/30 dark:text-primary-300;
+      @apply bg-primary-100 dark:bg-primary-600/30;
+    }
+  }
+
+  .datv-header-btn {
+    @apply text-dark-600 dark:text-dark-300;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    @apply px-1.5;
+
+    .datv-header:hover & {
+      @apply text-dark-900 dark:text-dark-100;
+    }
+
+    .datv-header--active & {
+      @apply text-primary-700 dark:text-primary-300;
+    }
+  }
+
+  .datv-resize-handle {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 6px;
+    height: 100%;
+    cursor: col-resize;
+    z-index: 10;
+    @apply bg-transparent;
+
+    &:hover {
+      @apply bg-primary-500/50;
+    }
+
+    &:active {
+      @apply bg-primary-500;
     }
   }
 

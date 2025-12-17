@@ -1,4 +1,4 @@
-import { CHAR_WIDTH, LINE_HEIGHT, COLORS } from '../rendering.js'
+import { CHAR_WIDTH, LINE_HEIGHT, isDarkMode } from '../rendering.js'
 import {
   type DatFile,
   type Header as DatHeader,
@@ -8,7 +8,7 @@ import {
 import type { Header as HeaderViewer } from '../headers.js'
 
 // Dark theme syntax colors
-const SYNTAX_COLORS = {
+const DARK_SYNTAX_COLORS = {
   number: '#4ade80', // green-400 for numbers/integers/decimals
   boolean: '#60a5fa', // blue-400 for booleans
   string: '#fbbf24', // amber-400 for strings
@@ -18,73 +18,91 @@ const SYNTAX_COLORS = {
   hex: '#94a3b8', // slate-400 for hex dumps
 }
 
+// Light theme syntax colors
+const LIGHT_SYNTAX_COLORS = {
+  number: '#16a34a', // green-600 for numbers/integers/decimals
+  boolean: '#2563eb', // blue-600 for booleans
+  string: '#d97706', // amber-600 for strings
+  null: '#dc2626', // red-600 for null values
+  key: '#7c3aed', // violet-600 for keys/references
+  muted: '#94a3b8', // slate-400 for empty/muted values
+  hex: '#64748b', // slate-500 for hex dumps
+}
+
+// Get current syntax colors based on theme
+function getSyntaxColors() {
+  return isDarkMode() ? DARK_SYNTAX_COLORS : LIGHT_SYNTAX_COLORS
+}
+
 interface StringifyOut {
   text: string
   color: string
 }
 
-function integerToString(value: number, out: StringifyOut) {
+type SyntaxColors = ReturnType<typeof getSyntaxColors>
+
+function integerToString(value: number, out: StringifyOut, colors: SyntaxColors) {
   out.text = String(value)
-  out.color = SYNTAX_COLORS.number
+  out.color = colors.number
 }
-function decimalToString(value: number, out: StringifyOut) {
+function decimalToString(value: number, out: StringifyOut, colors: SyntaxColors) {
   out.text = value.toLocaleString(undefined, { maximumFractionDigits: 6, minimumFractionDigits: 1 })
-  out.color = SYNTAX_COLORS.number
+  out.color = colors.number
 }
-function integerArrayToString(value: number[], out: StringifyOut) {
+function integerArrayToString(value: number[], out: StringifyOut, colors: SyntaxColors) {
   out.text = `[${value.join(', ')}]`
-  out.color = SYNTAX_COLORS.number
+  out.color = colors.number
 }
-function decimalArrayToString(value: number[], out: StringifyOut) {
+function decimalArrayToString(value: number[], out: StringifyOut, colors: SyntaxColors) {
   out.text = `[${value.map((value) => value.toLocaleString(undefined, { maximumFractionDigits: 6, minimumFractionDigits: 1 })).join(', ')}]`
-  out.color = SYNTAX_COLORS.number
+  out.color = colors.number
 }
-function booleanToString(value: boolean, out: StringifyOut) {
+function booleanToString(value: boolean, out: StringifyOut, colors: SyntaxColors) {
   out.text = String(value)
-  out.color = SYNTAX_COLORS.boolean
+  out.color = colors.boolean
 }
-function booleanArrayToString(value: boolean[], out: StringifyOut) {
+function booleanArrayToString(value: boolean[], out: StringifyOut, colors: SyntaxColors) {
   out.text = `[${value.join(', ')}]`
-  out.color = SYNTAX_COLORS.boolean
+  out.color = colors.boolean
 }
-function stringToString(value: string, out: StringifyOut) {
+function stringToString(value: string, out: StringifyOut, colors: SyntaxColors) {
   if (value === '') {
     out.text = 'empty'
-    out.color = SYNTAX_COLORS.muted
+    out.color = colors.muted
   } else {
     out.text = String(value)
-    out.color = SYNTAX_COLORS.string
+    out.color = colors.string
   }
 }
-function stringArrayToString(value: string[], out: StringifyOut) {
+function stringArrayToString(value: string[], out: StringifyOut, colors: SyntaxColors) {
   out.text = `[${value.map((str) => JSON.stringify(str)).join(', ')}]`
-  out.color = SYNTAX_COLORS.string
+  out.color = colors.string
 }
-function keySelfToString(value: number | null, out: StringifyOut) {
+function keySelfToString(value: number | null, out: StringifyOut, colors: SyntaxColors) {
   if (value === null) {
     out.text = '<null, self>'
-    out.color = SYNTAX_COLORS.null
+    out.color = colors.null
   } else {
     out.text = `<${value}, self>`
-    out.color = SYNTAX_COLORS.key
+    out.color = colors.key
   }
 }
-function keySelfArrayToString(value: number[], out: StringifyOut) {
+function keySelfArrayToString(value: number[], out: StringifyOut, colors: SyntaxColors) {
   out.text = `[${value.map((key) => `<${key}, self>`).join(', ')}]`
-  out.color = SYNTAX_COLORS.key
+  out.color = colors.key
 }
-function keyForeignToString(value: number | null, out: StringifyOut) {
+function keyForeignToString(value: number | null, out: StringifyOut, colors: SyntaxColors) {
   if (value === null) {
     out.text = '<null>'
-    out.color = SYNTAX_COLORS.null
+    out.color = colors.null
   } else {
     out.text = `<${value}>`
-    out.color = SYNTAX_COLORS.key
+    out.color = colors.key
   }
 }
-function keyForeignArrayToString(value: number[], out: StringifyOut) {
+function keyForeignArrayToString(value: number[], out: StringifyOut, colors: SyntaxColors) {
   out.text = `[${value.map((key) => `<${key}>`).join(', ')}]`
-  out.color = SYNTAX_COLORS.key
+  out.color = colors.key
 }
 
 export function renderCellContent(
@@ -94,6 +112,7 @@ export function renderCellContent(
   rows: number[],
   referenced?: { header: DatHeader; datFile: DatFile }
 ) {
+  const colors = getSyntaxColors()
   const read = getFieldReader(header, datFile)
 
   if (referenced?.header.type.array) {
@@ -107,7 +126,7 @@ export function renderCellContent(
 
   const draw: StringifyOut = { text: '', color: '' }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const stringify: (value: any, out: StringifyOut) => void = (() => {
+  const stringify: (value: any, out: StringifyOut, colors: SyntaxColors) => void = (() => {
     const type = referenced != null ? referenced.header.type : header.type
     if (header.type.array) {
       if (type.boolean) return booleanArrayToString
@@ -134,18 +153,18 @@ export function renderCellContent(
     if (referenced) {
       if (header.type.array) {
         cellData = (cellData as number[]).map((rRid) => readReferenced!(rRid))
-        stringify(cellData, draw)
+        stringify(cellData, draw, colors)
       } else {
         if (cellData === null) {
-          const stringify = header.type.key!.foreign ? keyForeignToString : keySelfToString
-          stringify(cellData, draw)
+          const stringifyNull = header.type.key!.foreign ? keyForeignToString : keySelfToString
+          stringifyNull(cellData, draw, colors)
         } else {
           cellData = readReferenced!(cellData as number)
-          stringify(cellData, draw)
+          stringify(cellData, draw, colors)
         }
       }
     } else {
-      stringify(cellData, draw)
+      stringify(cellData, draw, colors)
     }
 
     if (prevColor !== draw.color) {
@@ -165,7 +184,8 @@ export function drawByteView(
   begin: number,
   end: number
 ) {
-  ctx.fillStyle = SYNTAX_COLORS.hex
+  const colors = getSyntaxColors()
+  ctx.fillStyle = colors.hex
 
   let textY = 0
   for (const rowIdx of rows) {
@@ -187,7 +207,8 @@ export function drawArrayVarData(
   rows: number[],
   stats: ColumnStats
 ) {
-  ctx.fillStyle = SYNTAX_COLORS.hex
+  const colors = getSyntaxColors()
+  ctx.fillStyle = colors.hex
 
   const stat = stats.refArray as Exclude<(typeof stats)['refArray'], false>
   const entryMaxLength = Math.max(
