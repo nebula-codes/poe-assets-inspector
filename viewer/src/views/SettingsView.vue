@@ -4,6 +4,7 @@
     Monitor,
     Moon,
     Sun,
+    Contrast,
     Type,
     Hash,
     WrapText,
@@ -22,6 +23,7 @@
   const themeOptions: { value: Theme; label: string; icon: typeof Sun }[] = [
     { value: 'dark', label: 'Dark', icon: Moon },
     { value: 'light', label: 'Light', icon: Sun },
+    { value: 'high-contrast', label: 'High Contrast', icon: Contrast },
     { value: 'system', label: 'System', icon: Monitor },
   ]
 

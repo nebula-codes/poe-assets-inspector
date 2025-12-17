@@ -30,6 +30,23 @@
     --color-text-muted: theme('colors.dark.500');
   }
 
+  .high-contrast {
+    /* High contrast theme - built on top of dark */
+    --color-bg-base: #000000;
+    --color-bg-surface: #0a0a0a;
+    --color-bg-elevated: #1a1a1a;
+    --color-bg-muted: #0a0a0a;
+    --color-border: #ffffff;
+    --color-border-muted: #888888;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #e0e0e0;
+    --color-text-muted: #b0b0b0;
+  }
+
+  .high-contrast * {
+    border-color: var(--color-border);
+  }
+
   * {
     border-color: var(--color-border);
   }
@@ -238,5 +255,117 @@
   /* Subtle glow */
   .glow {
     @apply shadow-glow;
+  }
+}
+
+/* High contrast theme overrides */
+.high-contrast {
+  /* Stronger borders */
+  --tw-border-opacity: 1;
+
+  /* Override primary colors for better contrast */
+  --color-primary: #00ffff;
+
+  /* Force white text on most elements */
+  & .text-dark-100,
+  & .text-dark-200,
+  & .text-dark-300,
+  & .text-dark-400 {
+    color: #ffffff !important;
+  }
+
+  & .text-dark-500,
+  & .text-dark-600 {
+    color: #cccccc !important;
+  }
+
+  /* High contrast cards */
+  & .card {
+    background-color: #0a0a0a;
+    border: 2px solid #ffffff;
+  }
+
+  & .card-header {
+    border-bottom: 2px solid #ffffff;
+  }
+
+  /* High contrast buttons */
+  & .btn-primary {
+    background-color: #0066ff;
+    border: 2px solid #ffffff;
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  & .btn-primary:hover {
+    background-color: #0055dd;
+  }
+
+  & .btn-secondary {
+    background-color: #333333;
+    border: 2px solid #ffffff;
+    color: #ffffff;
+  }
+
+  & .btn-secondary:hover {
+    background-color: #444444;
+  }
+
+  & .btn-ghost {
+    color: #ffffff;
+    border: 1px solid transparent;
+  }
+
+  & .btn-ghost:hover {
+    background-color: #333333;
+    border-color: #ffffff;
+  }
+
+  /* High contrast inputs */
+  & .input,
+  & .input-search {
+    background-color: #000000;
+    border: 2px solid #ffffff;
+    color: #ffffff;
+  }
+
+  & .input:focus,
+  & .input-search:focus {
+    border-color: #00ffff;
+    outline: 2px solid #00ffff;
+    outline-offset: 2px;
+  }
+
+  /* High contrast links */
+  & a {
+    color: #00ffff;
+    text-decoration: underline;
+  }
+
+  & a:hover {
+    color: #ffffff;
+  }
+
+  /* High contrast selection */
+  & ::selection {
+    background-color: #0066ff;
+    color: #ffffff;
+  }
+
+  /* High contrast focus indicators */
+  & *:focus-visible {
+    outline: 3px solid #00ffff;
+    outline-offset: 2px;
+  }
+
+  /* High contrast scrollbars */
+  & ::-webkit-scrollbar-thumb {
+    background-color: #666666;
+    border: 1px solid #ffffff;
+  }
+
+  & ::-webkit-scrollbar-track {
+    background-color: #000000;
+    border: 1px solid #333333;
   }
 }

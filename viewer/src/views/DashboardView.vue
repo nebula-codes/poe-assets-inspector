@@ -143,8 +143,12 @@
     <div class="card">
       <div class="flex items-center justify-between p-6">
         <div>
-          <h1 class="text-2xl font-semibold text-dark-100">Welcome to PoE DAT Studio</h1>
-          <p class="mt-1 text-dark-400">Explore and analyze Path of Exile data files with ease</p>
+          <h1 class="text-2xl font-semibold text-dark-900 dark:text-dark-100">
+            Welcome to PoE DAT Studio
+          </h1>
+          <p class="mt-1 text-dark-600 dark:text-dark-400">
+            Explore and analyze Path of Exile data files with ease
+          </p>
         </div>
         <div class="flex gap-3">
           <button class="btn-primary" @click="router.push('/viewer')">
@@ -163,8 +167,8 @@
             <component :is="stat.icon" :class="['h-6 w-6', stat.color]" />
           </div>
           <div>
-            <p class="text-sm text-dark-400">{{ stat.title }}</p>
-            <p class="text-2xl font-semibold text-dark-100">{{ stat.value }}</p>
+            <p class="text-sm text-dark-600 dark:text-dark-400">{{ stat.title }}</p>
+            <p class="text-2xl font-semibold text-dark-900 dark:text-dark-100">{{ stat.value }}</p>
           </div>
         </div>
       </div>
@@ -173,26 +177,28 @@
     <!-- Quick Actions -->
     <div class="card">
       <div class="card-header">
-        <h2 class="text-lg font-medium text-dark-100">Quick Actions</h2>
+        <h2 class="text-lg font-medium text-dark-900 dark:text-dark-100">Quick Actions</h2>
       </div>
       <div class="grid grid-cols-1 gap-4 p-6 sm:grid-cols-3">
         <button
           v-for="action in quickActions"
           :key="action.title"
-          class="group flex items-start gap-4 rounded-xl border border-dark-700 bg-dark-800/50 p-4 text-left transition-all hover:border-dark-600 hover:bg-dark-700/50"
+          class="group flex items-start gap-4 rounded-xl border border-dark-300 bg-dark-100/50 p-4 text-left transition-all hover:border-dark-400 hover:bg-dark-200/50 dark:border-dark-700 dark:bg-dark-800/50 dark:hover:border-dark-600 dark:hover:bg-dark-700/50"
           @click="action.action"
         >
           <div :class="['rounded-lg p-2.5', action.color]">
             <component :is="action.icon" class="h-5 w-5" />
           </div>
           <div class="flex-1">
-            <h3 class="font-medium text-dark-100 group-hover:text-primary-400">
+            <h3
+              class="font-medium text-dark-900 group-hover:text-primary-600 dark:text-dark-100 dark:group-hover:text-primary-400"
+            >
               {{ action.title }}
             </h3>
-            <p class="mt-1 text-sm text-dark-500">{{ action.description }}</p>
+            <p class="mt-1 text-sm text-dark-600 dark:text-dark-500">{{ action.description }}</p>
           </div>
           <ArrowRight
-            class="h-5 w-5 text-dark-600 transition-transform group-hover:translate-x-1 group-hover:text-dark-400"
+            class="h-5 w-5 text-dark-400 transition-transform group-hover:translate-x-1 group-hover:text-dark-600 dark:text-dark-600 dark:group-hover:text-dark-400"
           />
         </button>
       </div>
@@ -203,28 +209,32 @@
       <!-- Recent Files -->
       <div class="card">
         <div class="card-header">
-          <h2 class="text-lg font-medium text-dark-100">Recent Files</h2>
-          <button class="text-sm text-primary-400 hover:underline">View All</button>
+          <h2 class="text-lg font-medium text-dark-900 dark:text-dark-100">Recent Files</h2>
+          <button class="text-sm text-primary-600 hover:underline dark:text-primary-400">
+            View All
+          </button>
         </div>
         <div class="p-6">
           <div
             v-if="!recentFiles.length"
             class="flex flex-col items-center justify-center py-8 text-center"
           >
-            <Clock class="h-12 w-12 text-dark-600" />
-            <p class="mt-4 text-dark-400">No recent files</p>
+            <Clock class="h-12 w-12 text-dark-400 dark:text-dark-600" />
+            <p class="mt-4 text-dark-600 dark:text-dark-400">No recent files</p>
             <p class="text-sm text-dark-500">Files you open will appear here</p>
           </div>
           <ul v-else class="space-y-3">
             <li
               v-for="file in recentFiles"
               :key="file.path"
-              class="flex items-center justify-between rounded-lg p-3 hover:bg-dark-700/50"
+              class="flex items-center justify-between rounded-lg p-3 hover:bg-dark-200/50 dark:hover:bg-dark-700/50"
             >
               <div class="flex items-center gap-3">
                 <FileText class="h-5 w-5 text-dark-500" />
                 <div>
-                  <p class="text-sm font-medium text-dark-200">{{ file.name }}</p>
+                  <p class="text-sm font-medium text-dark-800 dark:text-dark-200">
+                    {{ file.name }}
+                  </p>
                   <p class="text-xs text-dark-500">{{ file.path }}</p>
                 </div>
               </div>
@@ -237,18 +247,18 @@
       <!-- Getting Started -->
       <div class="card">
         <div class="card-header">
-          <h2 class="text-lg font-medium text-dark-100">Getting Started</h2>
+          <h2 class="text-lg font-medium text-dark-900 dark:text-dark-100">Getting Started</h2>
         </div>
         <div class="p-6">
           <ul class="space-y-4">
             <li class="flex gap-4">
               <div
-                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-600/20 text-sm font-medium text-primary-400"
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-600/20 text-sm font-medium text-primary-600 dark:text-primary-400"
               >
                 1
               </div>
               <div>
-                <h3 class="font-medium text-dark-200">Import Data Files</h3>
+                <h3 class="font-medium text-dark-800 dark:text-dark-200">Import Data Files</h3>
                 <p class="text-sm text-dark-500">
                   Load .datc64 files from your computer or import directly from PoE patch servers
                 </p>
@@ -256,12 +266,12 @@
             </li>
             <li class="flex gap-4">
               <div
-                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-600/20 text-sm font-medium text-primary-400"
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-600/20 text-sm font-medium text-primary-600 dark:text-primary-400"
               >
                 2
               </div>
               <div>
-                <h3 class="font-medium text-dark-200">Browse & Analyze</h3>
+                <h3 class="font-medium text-dark-800 dark:text-dark-200">Browse & Analyze</h3>
                 <p class="text-sm text-dark-500">
                   Use the file explorer to navigate through the data structure and open tables
                 </p>
@@ -269,12 +279,12 @@
             </li>
             <li class="flex gap-4">
               <div
-                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-600/20 text-sm font-medium text-primary-400"
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-600/20 text-sm font-medium text-primary-600 dark:text-primary-400"
               >
                 3
               </div>
               <div>
-                <h3 class="font-medium text-dark-200">Export Data</h3>
+                <h3 class="font-medium text-dark-800 dark:text-dark-200">Export Data</h3>
                 <p class="text-sm text-dark-500">
                   Export analyzed data in various formats for further processing
                 </p>

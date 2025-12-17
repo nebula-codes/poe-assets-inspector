@@ -265,17 +265,23 @@
 
 <template>
   <header
-    class="flex h-16 items-center justify-between border-b border-dark-700 bg-dark-800/30 px-6"
+    class="flex h-16 items-center justify-between border-b border-dark-300 bg-dark-100/50 px-6 dark:border-dark-700 dark:bg-dark-800/30"
   >
     <!-- Left side -->
     <div class="flex items-center gap-4">
       <!-- Breadcrumb -->
       <nav class="flex items-center gap-2 text-sm">
         <template v-for="(item, index) in breadcrumb" :key="item">
-          <span :class="index === breadcrumb.length - 1 ? 'text-dark-100' : 'text-dark-500'">
+          <span
+            :class="
+              index === breadcrumb.length - 1 ? 'text-dark-900 dark:text-dark-100' : 'text-dark-500'
+            "
+          >
             {{ item }}
           </span>
-          <span v-if="index < breadcrumb.length - 1" class="text-dark-600">/</span>
+          <span v-if="index < breadcrumb.length - 1" class="text-dark-400 dark:text-dark-600"
+            >/</span
+          >
         </template>
       </nav>
     </div>
@@ -289,20 +295,20 @@
           v-model="searchQuery"
           type="search"
           placeholder="Search files, tables, or data..."
-          class="input-search w-full bg-dark-800"
+          class="input-search w-full"
           @focus="handleSearchFocus"
           @blur="handleSearchBlur"
           @keydown="handleKeyDown"
         />
         <kbd
           v-if="!searchQuery"
-          class="absolute right-3 top-1/2 -translate-y-1/2 rounded bg-dark-700 px-1.5 py-0.5 text-xs text-dark-400"
+          class="absolute right-3 top-1/2 -translate-y-1/2 rounded bg-dark-200 px-1.5 py-0.5 text-xs text-dark-500 dark:bg-dark-700 dark:text-dark-400"
         >
           {{ isMac ? '⌘' : 'Ctrl+' }}K
         </kbd>
         <button
           v-else
-          class="absolute right-3 top-1/2 -translate-y-1/2 rounded p-0.5 text-dark-400 hover:bg-dark-600 hover:text-dark-200"
+          class="absolute right-3 top-1/2 -translate-y-1/2 rounded p-0.5 text-dark-500 hover:bg-dark-200 hover:text-dark-700 dark:text-dark-400 dark:hover:bg-dark-600 dark:hover:text-dark-200"
           @mousedown.prevent="closeSearch"
         >
           <X class="h-4 w-4" />
@@ -314,12 +320,15 @@
         v-if="
           showSearchResults && (searchResults.length > 0 || searchQuery.length >= 2 || isIndexing)
         "
-        class="absolute left-0 right-0 top-full z-50 mt-2 max-h-96 overflow-auto rounded-lg border border-dark-700 bg-dark-800 shadow-xl"
+        class="absolute left-0 right-0 top-full z-50 mt-2 max-h-96 overflow-auto rounded-lg border border-dark-300 bg-white shadow-xl dark:border-dark-700 dark:bg-dark-800"
       >
         <!-- Indexing state -->
-        <div v-if="isIndexing" class="flex items-center gap-2 px-4 py-3 text-sm text-dark-400">
+        <div
+          v-if="isIndexing"
+          class="flex items-center gap-2 px-4 py-3 text-sm text-dark-500 dark:text-dark-400"
+        >
           <div
-            class="h-4 w-4 animate-spin rounded-full border-2 border-dark-600 border-t-primary-500"
+            class="h-4 w-4 animate-spin rounded-full border-2 border-dark-300 border-t-primary-500 dark:border-dark-600"
           />
           <span>{{ indexingProgress || 'Building file index...' }}</span>
         </div>
@@ -327,16 +336,18 @@
         <!-- No results -->
         <div
           v-else-if="searchQuery.length >= 2 && searchResults.length === 0"
-          class="px-4 py-3 text-sm text-dark-400"
+          class="px-4 py-3 text-sm text-dark-500 dark:text-dark-400"
         >
           No results found for "{{ searchQuery }}"
         </div>
 
         <!-- Results list -->
         <template v-else-if="searchResults.length > 0">
-          <div class="border-b border-dark-700 px-3 py-2 text-xs font-medium text-dark-500">
+          <div
+            class="border-b border-dark-200 px-3 py-2 text-xs font-medium text-dark-500 dark:border-dark-700"
+          >
             {{ searchResults.length }} result{{ searchResults.length !== 1 ? 's' : '' }}
-            <span v-if="allFiles.length > 0" class="text-dark-600">
+            <span v-if="allFiles.length > 0" class="text-dark-400 dark:text-dark-600">
               ({{ allFiles.length.toLocaleString() }} files indexed)
             </span>
           </div>
@@ -346,8 +357,8 @@
             class="flex w-full items-center gap-3 px-4 py-2 text-left text-sm transition-colors"
             :class="
               idx === selectedResultIndex
-                ? 'bg-primary-600/20 text-primary-300'
-                : 'text-dark-300 hover:bg-dark-700'
+                ? 'bg-primary-600/20 text-primary-700 dark:text-primary-300'
+                : 'text-dark-700 hover:bg-dark-100 dark:text-dark-300 dark:hover:bg-dark-700'
             "
             @mousedown.prevent="selectResult(result)"
             @mouseenter="selectedResultIndex = idx"
@@ -371,19 +382,19 @@
 
         <!-- Keyboard hints -->
         <div
-          class="flex items-center gap-4 border-t border-dark-700 px-3 py-2 text-xs text-dark-500"
+          class="flex items-center gap-4 border-t border-dark-200 px-3 py-2 text-xs text-dark-500 dark:border-dark-700"
         >
           <span class="flex items-center gap-1">
-            <kbd class="rounded bg-dark-700 px-1">↑</kbd>
-            <kbd class="rounded bg-dark-700 px-1">↓</kbd>
+            <kbd class="rounded bg-dark-200 px-1 dark:bg-dark-700">↑</kbd>
+            <kbd class="rounded bg-dark-200 px-1 dark:bg-dark-700">↓</kbd>
             to navigate
           </span>
           <span class="flex items-center gap-1">
-            <kbd class="rounded bg-dark-700 px-1">Enter</kbd>
+            <kbd class="rounded bg-dark-200 px-1 dark:bg-dark-700">Enter</kbd>
             to select
           </span>
           <span class="flex items-center gap-1">
-            <kbd class="rounded bg-dark-700 px-1">Esc</kbd>
+            <kbd class="rounded bg-dark-200 px-1 dark:bg-dark-700">Esc</kbd>
             to close
           </span>
         </div>
@@ -416,7 +427,7 @@
       </div>
 
       <!-- Divider -->
-      <div class="mx-2 h-6 w-px bg-dark-700" />
+      <div class="mx-2 h-6 w-px bg-dark-300 dark:bg-dark-700" />
 
       <!-- Action buttons -->
       <button class="btn-icon btn-ghost" title="Refresh" @click="handleRefresh">
@@ -435,10 +446,10 @@
       <!-- User avatar / Settings -->
       <router-link
         to="/settings"
-        class="ml-2 flex h-8 w-8 items-center justify-center rounded-full bg-dark-700 transition-colors hover:bg-dark-600"
+        class="ml-2 flex h-8 w-8 items-center justify-center rounded-full bg-dark-200 transition-colors hover:bg-dark-300 dark:bg-dark-700 dark:hover:bg-dark-600"
         title="Settings"
       >
-        <Settings class="h-4 w-4 text-dark-400" />
+        <Settings class="h-4 w-4 text-dark-500 dark:text-dark-400" />
       </router-link>
     </div>
   </header>

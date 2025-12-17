@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, watch, computed } from 'vue'
 
-export type Theme = 'dark' | 'light' | 'system'
+export type Theme = 'dark' | 'light' | 'high-contrast' | 'system'
 
 export interface AppSettings {
   theme: Theme
@@ -64,12 +64,18 @@ export const useSettingsStore = defineStore('settings', () => {
 
   function applyTheme(theme: Theme) {
     const root = document.documentElement
+    // Remove all theme classes first
+    root.classList.remove('dark', 'high-contrast')
+
     if (theme === 'system') {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       root.classList.toggle('dark', prefersDark)
-    } else {
-      root.classList.toggle('dark', theme === 'dark')
+    } else if (theme === 'high-contrast') {
+      root.classList.add('dark', 'high-contrast')
+    } else if (theme === 'dark') {
+      root.classList.add('dark')
     }
+    // light theme = no classes added
   }
 
   // Font size
