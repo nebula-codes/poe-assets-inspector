@@ -1,11 +1,10 @@
 <script setup lang="ts">
-  import { ref, computed, inject, watch, onMounted, onUnmounted, nextTick } from 'vue'
+  import { ref, computed, inject, watch, onMounted, onUnmounted } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import {
     Search,
     Bell,
     Upload,
-    Download,
     Settings,
     HelpCircle,
     RefreshCw,
@@ -14,14 +13,18 @@
     File,
     Folder,
     X,
+    FileText,
+    Database,
   } from 'lucide-vue-next'
-  import { useAppStore, useSettingsStore } from '@/stores'
+  import { useAppStore, useSettingsStore, useSearchStore } from '@/stores'
   import type { BundleIndex } from '@/app/patchcdn/index-store'
+  import { exportAllRows } from '@/app/dat-viewer/Viewer'
 
   const route = useRoute()
   const router = useRouter()
   const appStore = useAppStore()
   const settingsStore = useSettingsStore()
+  const searchStore = useSearchStore()
 
   const index = inject<BundleIndex>('bundle-index')!
 
@@ -30,86 +33,132 @@
   const searchInputRef = ref<HTMLInputElement | null>(null)
   const showSearchResults = ref(false)
   const selectedResultIndex = ref(0)
-  const isSearching = ref(false)
+  const isIndexing = ref(false)
+  const indexingProgress = ref('')
 
-  // Cache for all files (built once when index loads)
+  // Cache for all files (built lazily when user searches)
   const allFiles = ref<string[]>([])
   const allDirs = ref<string[]>([])
+  const hasBuiltIndex = ref(false)
 
-  // Build file index recursively
-  async function buildFileIndex() {
-    if (!index.isLoaded) return
+  // Build file index lazily and non-blocking
+  async function buildFileIndexLazy() {
+    if (!index.isLoaded || hasBuiltIndex.value || isIndexing.value) return
 
-    isSearching.value = true
+    isIndexing.value = true
     const files: string[] = []
     const dirs: string[] = []
     const visited = new Set<string>()
+    const queue: string[] = []
 
-    async function traverse(dirPath: string) {
-      if (visited.has(dirPath)) return
-      visited.add(dirPath)
-
-      try {
-        const content = index.getDirContent(dirPath)
-        dirs.push(...content.dirs)
-        files.push(...content.files)
-
-        for (const subDir of content.dirs) {
-          await traverse(subDir)
-        }
-      } catch (e) {
-        // Skip inaccessible directories
-      }
-    }
-
-    // Start from root directories
+    // Get root directories
     const rootDirs = index.getRootDirs()
-    for (const rootDir of rootDirs) {
-      await traverse(rootDir)
+    queue.push(...rootDirs)
+
+    // Process in batches to avoid blocking UI
+    const BATCH_SIZE = 50
+    let processed = 0
+
+    while (queue.length > 0) {
+      const batch = queue.splice(0, BATCH_SIZE)
+
+      for (const dirPath of batch) {
+        if (visited.has(dirPath)) continue
+        visited.add(dirPath)
+
+        try {
+          const content = index.getDirContent(dirPath)
+          dirs.push(...content.dirs)
+          files.push(...content.files)
+          queue.push(...content.dirs)
+        } catch (e) {
+          // Skip inaccessible directories
+        }
+      }
+
+      processed += batch.length
+      indexingProgress.value = `Indexed ${files.length.toLocaleString()} files...`
+
+      // Yield to UI thread
+      await new Promise((resolve) => setTimeout(resolve, 0))
     }
 
     allFiles.value = files
     allDirs.value = dirs
-    isSearching.value = false
+    hasBuiltIndex.value = true
+    isIndexing.value = false
+    indexingProgress.value = ''
   }
 
-  // Watch for index loading
+  // Reset index when bundle changes
   index.watch(() => {
-    if (index.isLoaded) {
-      buildFileIndex()
-    }
+    hasBuiltIndex.value = false
+    allFiles.value = []
+    allDirs.value = []
   })
 
-  // Build index if already loaded
-  onMounted(() => {
-    if (index.isLoaded) {
-      buildFileIndex()
-    }
-  })
+  // Search result types
+  interface SearchResult {
+    type: 'file' | 'dir' | 'content'
+    path: string
+    name: string
+    context?: string // For content matches
+    fileId?: string // For navigating to opened file
+  }
 
-  // Search results
-  const searchResults = computed(() => {
+  // Search results combining files and content
+  const searchResults = computed<SearchResult[]>(() => {
     const query = searchQuery.value.toLowerCase().trim()
     if (!query || query.length < 2) return []
 
-    const results: Array<{ path: string; name: string; isFile: boolean }> = []
+    const results: SearchResult[] = []
     const maxResults = 50
 
-    // Search files first (more relevant usually)
+    // 1. Search content in opened files first (most relevant)
+    const openedFiles = searchStore.getOpenedFiles()
+    for (const file of openedFiles) {
+      if (results.length >= maxResults) break
+      if (!file.viewer) continue
+
+      try {
+        const rows = exportAllRows(file.viewer.headers.value, file.viewer.datFile)
+        for (let rowIdx = 0; rowIdx < rows.length && results.length < maxResults; rowIdx++) {
+          const row = rows[rowIdx]
+          for (const [key, value] of Object.entries(row)) {
+            if (value === null || value === undefined) continue
+            const strValue = String(value).toLowerCase()
+            if (strValue.includes(query)) {
+              results.push({
+                type: 'content',
+                path: file.fullPath,
+                name: file.name,
+                context: `Row ${rowIdx}: ${key} = "${String(value).slice(0, 50)}${String(value).length > 50 ? '...' : ''}"`,
+                fileId: file.id,
+              })
+              break // Only one match per row
+            }
+          }
+        }
+      } catch (e) {
+        // Skip files with errors
+      }
+    }
+
+    // 2. Search file names in index
     for (const filePath of allFiles.value) {
       if (results.length >= maxResults) break
       const name = filePath.split('/').pop() || filePath
       if (name.toLowerCase().includes(query) || filePath.toLowerCase().includes(query)) {
-        results.push({ path: filePath, name, isFile: true })
+        results.push({ type: 'file', path: filePath, name })
       }
     }
 
-    // Then search directories
+    // 3. Search directories
     for (const dirPath of allDirs.value) {
       if (results.length >= maxResults) break
       const name = dirPath.split('/').pop() || dirPath
       if (name.toLowerCase().includes(query) || dirPath.toLowerCase().includes(query)) {
-        results.push({ path: dirPath, name, isFile: false })
+        results.push({ type: 'dir', path: dirPath, name })
       }
     }
 
@@ -156,15 +205,20 @@
   })
 
   // Select a search result
-  function selectResult(result: { path: string; name: string; isFile: boolean }) {
-    if (result.isFile) {
+  function selectResult(result: SearchResult) {
+    if (result.type === 'content') {
+      // Navigate to file with the content match
+      router.push({
+        path: '/viewer',
+        query: { file: result.path },
+      })
+    } else if (result.type === 'file') {
       router.push({
         path: '/viewer',
         query: { file: result.path },
       })
     } else {
-      // For directories, we could expand the sidebar or navigate to viewer with dir context
-      // For now, just navigate to viewer
+      // Directory - navigate to viewer with dir context
       router.push({
         path: '/viewer',
         query: { dir: result.path },
@@ -181,6 +235,10 @@
 
   function handleSearchFocus() {
     showSearchResults.value = true
+    // Trigger lazy indexing when user focuses search
+    if (index.isLoaded && !hasBuiltIndex.value && !isIndexing.value) {
+      buildFileIndexLazy()
+    }
   }
 
   function handleSearchBlur() {
@@ -295,15 +353,17 @@
 
       <!-- Search Results Dropdown -->
       <div
-        v-if="showSearchResults && (searchResults.length > 0 || searchQuery.length >= 2)"
+        v-if="
+          showSearchResults && (searchResults.length > 0 || searchQuery.length >= 2 || isIndexing)
+        "
         class="absolute left-0 right-0 top-full z-50 mt-2 max-h-96 overflow-auto rounded-lg border border-dark-700 bg-dark-800 shadow-xl"
       >
-        <!-- Loading state -->
-        <div v-if="isSearching" class="flex items-center gap-2 px-4 py-3 text-sm text-dark-400">
+        <!-- Indexing state -->
+        <div v-if="isIndexing" class="flex items-center gap-2 px-4 py-3 text-sm text-dark-400">
           <div
             class="h-4 w-4 animate-spin rounded-full border-2 border-dark-600 border-t-primary-500"
           />
-          <span>Indexing files...</span>
+          <span>{{ indexingProgress || 'Building file index...' }}</span>
         </div>
 
         <!-- No results -->
@@ -315,7 +375,7 @@
         </div>
 
         <!-- Results list -->
-        <template v-else>
+        <template v-else-if="searchResults.length > 0">
           <div class="border-b border-dark-700 px-3 py-2 text-xs font-medium text-dark-500">
             {{ searchResults.length }} result{{ searchResults.length !== 1 ? 's' : '' }}
             <span v-if="allFiles.length > 0" class="text-dark-600">
@@ -324,7 +384,7 @@
           </div>
           <button
             v-for="(result, idx) in searchResults"
-            :key="result.path"
+            :key="`${result.type}-${result.path}-${idx}`"
             class="flex w-full items-center gap-3 px-4 py-2 text-left text-sm transition-colors"
             :class="
               idx === selectedResultIndex
@@ -334,11 +394,31 @@
             @mousedown.prevent="selectResult(result)"
             @mouseenter="selectedResultIndex = idx"
           >
-            <File v-if="result.isFile" class="h-4 w-4 shrink-0 text-dark-500" />
+            <!-- Icon based on type -->
+            <Database v-if="result.type === 'content'" class="h-4 w-4 shrink-0 text-green-500" />
+            <File v-else-if="result.type === 'file'" class="h-4 w-4 shrink-0 text-dark-500" />
             <Folder v-else class="h-4 w-4 shrink-0 text-amber-500" />
+
             <div class="min-w-0 flex-1">
-              <div class="truncate font-medium" v-html="highlightMatch(result.name, searchQuery)" />
+              <div class="flex items-center gap-2">
+                <span
+                  class="truncate font-medium"
+                  v-html="highlightMatch(result.name, searchQuery)"
+                />
+                <span
+                  v-if="result.type === 'content'"
+                  class="shrink-0 rounded bg-green-600/20 px-1.5 py-0.5 text-xs text-green-400"
+                >
+                  Content
+                </span>
+              </div>
               <div
+                v-if="result.context"
+                class="truncate text-xs text-green-400/70"
+                v-html="highlightMatch(result.context, searchQuery)"
+              />
+              <div
+                v-else
                 class="truncate text-xs text-dark-500"
                 v-html="highlightMatch(result.path, searchQuery)"
               />

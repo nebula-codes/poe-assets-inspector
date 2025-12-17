@@ -14,7 +14,8 @@
   } from 'lucide-vue-next'
   import DatViewer from '@/app/dat-viewer/components/DatViewer.vue'
   import type { BundleIndex } from '@/app/patchcdn/index-store'
-  import { useAppStore } from '@/stores'
+  import { useAppStore, useSearchStore } from '@/stores'
+  import type { Viewer } from '@/app/dat-viewer/Viewer'
 
   interface OpenFile {
     id: string
@@ -27,6 +28,7 @@
 
   const route = useRoute()
   const appStore = useAppStore()
+  const searchStore = useSearchStore()
   const index = inject<BundleIndex>('bundle-index')!
 
   // State
@@ -72,6 +74,7 @@
         scope: effectScope(),
       })
       activeFileId.value = id
+      searchStore.registerFile(id, fullPath, null)
     } catch (error) {
       console.error('Failed to load file:', error)
     } finally {
@@ -89,27 +92,36 @@
     const fileContent = new Uint8Array(buffer)
     const id = `file-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 
+    const fullPath = `local/${file.name}`
     openFiles.value.push({
       id,
       title: file.name,
-      fullPath: `local/${file.name}`,
+      fullPath,
       fileContent,
       scope: effectScope(),
     })
     activeFileId.value = id
+    searchStore.registerFile(id, fullPath, null)
     input.value = ''
   }
 
   // Close file
   function closeFile(fileId: string) {
-    const index = openFiles.value.findIndex((f) => f.id === fileId)
-    if (index !== -1) {
-      openFiles.value[index].scope.stop()
-      openFiles.value.splice(index, 1)
+    const idx = openFiles.value.findIndex((f) => f.id === fileId)
+    if (idx !== -1) {
+      openFiles.value[idx].scope.stop()
+      openFiles.value.splice(idx, 1)
+      searchStore.unregisterFile(fileId)
       if (activeFileId.value === fileId) {
-        activeFileId.value =
-          openFiles.value[Math.min(index, openFiles.value.length - 1)]?.id ?? null
+        activeFileId.value = openFiles.value[Math.min(idx, openFiles.value.length - 1)]?.id ?? null
       }
+    }
+  }
+
+  // Update search store when viewer state is created
+  function handleViewerStateUpdate(fileId: string, state: unknown) {
+    if (state) {
+      searchStore.updateViewer(fileId, state as Viewer)
     }
   }
 
@@ -142,15 +154,17 @@
     const buffer = await file.arrayBuffer()
     const fileContent = new Uint8Array(buffer)
     const id = `file-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+    const fullPath = `local/${file.name}`
 
     openFiles.value.push({
       id,
       title: file.name,
-      fullPath: `local/${file.name}`,
+      fullPath,
       fileContent,
       scope: effectScope(),
     })
     activeFileId.value = id
+    searchStore.registerFile(id, fullPath, null)
   }
 
   // Listen for open file events
@@ -167,15 +181,17 @@
       const buffer = await file.arrayBuffer()
       const fileContent = new Uint8Array(buffer)
       const id = `file-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+      const fullPath = `local/${file.name}`
 
       openFiles.value.push({
         id,
         title: file.name,
-        fullPath: `local/${file.name}`,
+        fullPath,
         fileContent,
         scope: effectScope(),
       })
       activeFileId.value = id
+      searchStore.registerFile(id, fullPath, null)
     }
   }
 
@@ -287,6 +303,7 @@
             v-model:ka-state="file.state as any"
             :args="{ fileContent: file.fileContent, fullPath: file.fullPath }"
             :ka-scope="file.scope as any"
+            @update:ka-state="handleViewerStateUpdate(file.id, $event)"
           />
         </div>
       </template>
