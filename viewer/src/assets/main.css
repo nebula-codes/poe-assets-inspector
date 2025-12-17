@@ -258,114 +258,222 @@
   }
 }
 
-/* High contrast theme overrides */
+/* High contrast theme overrides - aggressive styling */
 .high-contrast {
-  /* Stronger borders */
-  --tw-border-opacity: 1;
+  --color-bg-base: #000000 !important;
+  --color-bg-surface: #0a0a0a !important;
+  --color-bg-elevated: #1a1a1a !important;
+  --color-border: #ffffff !important;
+  --color-text-primary: #ffffff !important;
+  --color-text-secondary: #e0e0e0 !important;
+  --color-text-muted: #b0b0b0 !important;
+}
 
-  /* Override primary colors for better contrast */
-  --color-primary: #00ffff;
+/* Force black backgrounds everywhere */
+.high-contrast,
+.high-contrast body,
+.high-contrast main,
+.high-contrast aside,
+.high-contrast header {
+  background-color: #000000 !important;
+}
 
-  /* Force white text on most elements */
-  & .text-dark-100,
-  & .text-dark-200,
-  & .text-dark-300,
-  & .text-dark-400 {
-    color: #ffffff !important;
-  }
+/* Force white/bright text on everything */
+.high-contrast,
+.high-contrast * {
+  border-color: #ffffff !important;
+}
 
-  & .text-dark-500,
-  & .text-dark-600 {
-    color: #cccccc !important;
-  }
+.high-contrast h1,
+.high-contrast h2,
+.high-contrast h3,
+.high-contrast h4,
+.high-contrast p,
+.high-contrast span,
+.high-contrast div,
+.high-contrast button,
+.high-contrast label {
+  color: #ffffff !important;
+}
 
-  /* High contrast cards */
-  & .card {
-    background-color: #0a0a0a;
-    border: 2px solid #ffffff;
-  }
+/* Muted text stays visible but dimmer */
+.high-contrast .text-dark-500,
+.high-contrast .text-dark-600,
+.high-contrast [class*='text-dark-5'],
+.high-contrast [class*='text-dark-6'] {
+  color: #aaaaaa !important;
+}
 
-  & .card-header {
-    border-bottom: 2px solid #ffffff;
-  }
+/* High contrast cards */
+.high-contrast .card {
+  background-color: #0a0a0a !important;
+  border: 2px solid #ffffff !important;
+}
 
-  /* High contrast buttons */
-  & .btn-primary {
-    background-color: #0066ff;
-    border: 2px solid #ffffff;
-    color: #ffffff;
-    font-weight: 600;
-  }
+.high-contrast .card-header {
+  border-bottom: 2px solid #ffffff !important;
+  background-color: #111111 !important;
+}
 
-  & .btn-primary:hover {
-    background-color: #0055dd;
-  }
+/* High contrast buttons */
+.high-contrast .btn-primary {
+  background-color: #0066ff !important;
+  border: 2px solid #ffffff !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
 
-  & .btn-secondary {
-    background-color: #333333;
-    border: 2px solid #ffffff;
-    color: #ffffff;
-  }
+.high-contrast .btn-primary:hover {
+  background-color: #0088ff !important;
+}
 
-  & .btn-secondary:hover {
-    background-color: #444444;
-  }
+.high-contrast .btn-secondary {
+  background-color: #222222 !important;
+  border: 2px solid #ffffff !important;
+  color: #ffffff !important;
+}
 
-  & .btn-ghost {
-    color: #ffffff;
-    border: 1px solid transparent;
-  }
+.high-contrast .btn-secondary:hover {
+  background-color: #444444 !important;
+}
 
-  & .btn-ghost:hover {
-    background-color: #333333;
-    border-color: #ffffff;
-  }
+.high-contrast .btn-ghost {
+  color: #ffffff !important;
+  border: 1px solid #666666 !important;
+}
 
-  /* High contrast inputs */
-  & .input,
-  & .input-search {
-    background-color: #000000;
-    border: 2px solid #ffffff;
-    color: #ffffff;
-  }
+.high-contrast .btn-ghost:hover {
+  background-color: #333333 !important;
+  border-color: #ffffff !important;
+}
 
-  & .input:focus,
-  & .input-search:focus {
-    border-color: #00ffff;
-    outline: 2px solid #00ffff;
-    outline-offset: 2px;
-  }
+/* High contrast inputs */
+.high-contrast .input,
+.high-contrast .input-search,
+.high-contrast input,
+.high-contrast select,
+.high-contrast textarea {
+  background-color: #000000 !important;
+  border: 2px solid #ffffff !important;
+  color: #ffffff !important;
+}
 
-  /* High contrast links */
-  & a {
-    color: #00ffff;
-    text-decoration: underline;
-  }
+.high-contrast .input:focus,
+.high-contrast .input-search:focus,
+.high-contrast input:focus,
+.high-contrast select:focus {
+  border-color: #00ffff !important;
+  outline: 3px solid #00ffff !important;
+  outline-offset: 2px !important;
+}
 
-  & a:hover {
-    color: #ffffff;
-  }
+.high-contrast .input::placeholder,
+.high-contrast input::placeholder {
+  color: #888888 !important;
+}
 
-  /* High contrast selection */
-  & ::selection {
-    background-color: #0066ff;
-    color: #ffffff;
-  }
+/* High contrast links */
+.high-contrast a {
+  color: #00ffff !important;
+  text-decoration: underline !important;
+}
 
-  /* High contrast focus indicators */
-  & *:focus-visible {
-    outline: 3px solid #00ffff;
-    outline-offset: 2px;
-  }
+.high-contrast a:hover {
+  color: #ffffff !important;
+}
 
-  /* High contrast scrollbars */
-  & ::-webkit-scrollbar-thumb {
-    background-color: #666666;
-    border: 1px solid #ffffff;
-  }
+/* Sidebar and navigation */
+.high-contrast aside,
+.high-contrast nav {
+  background-color: #000000 !important;
+  border-color: #ffffff !important;
+}
 
-  & ::-webkit-scrollbar-track {
-    background-color: #000000;
-    border: 1px solid #333333;
-  }
+.high-contrast .router-link-active,
+.high-contrast [class*='bg-primary'] {
+  background-color: #003366 !important;
+  border: 1px solid #00ffff !important;
+}
+
+/* Dropdowns */
+.high-contrast .dropdown,
+.high-contrast [class*='dropdown'] {
+  background-color: #0a0a0a !important;
+  border: 2px solid #ffffff !important;
+}
+
+.high-contrast .dropdown-item:hover {
+  background-color: #333333 !important;
+}
+
+/* Icons - make them visible */
+.high-contrast svg {
+  color: #ffffff !important;
+}
+
+.high-contrast [class*='text-primary'] svg,
+.high-contrast [class*='text-amber'] svg,
+.high-contrast [class*='text-green'] svg,
+.high-contrast [class*='text-blue'] svg {
+  color: #00ffff !important;
+}
+
+/* Tab bars */
+.high-contrast [class*='border-b'] {
+  border-bottom-color: #ffffff !important;
+}
+
+.high-contrast [class*='border-l'] {
+  border-left-color: #ffffff !important;
+}
+
+.high-contrast [class*='border-r'] {
+  border-right-color: #ffffff !important;
+}
+
+/* Data table specific */
+.high-contrast .datv-header,
+.high-contrast .datv-byte,
+.high-contrast .datv-stat {
+  background-color: #000000 !important;
+  border-color: #ffffff !important;
+  color: #ffffff !important;
+}
+
+.high-contrast .datv-header:hover,
+.high-contrast .datv-byte:hover {
+  background-color: #222222 !important;
+}
+
+.high-contrast .datv-header--active,
+.high-contrast .datv-byte--selected {
+  background-color: #003366 !important;
+  border-color: #00ffff !important;
+}
+
+/* Focus visible for accessibility */
+.high-contrast *:focus-visible {
+  outline: 3px solid #00ffff !important;
+  outline-offset: 2px !important;
+}
+
+/* Selection */
+.high-contrast ::selection {
+  background-color: #0066ff !important;
+  color: #ffffff !important;
+}
+
+/* Scrollbars */
+.high-contrast ::-webkit-scrollbar-thumb {
+  background-color: #666666 !important;
+  border: 1px solid #ffffff !important;
+}
+
+.high-contrast ::-webkit-scrollbar-track {
+  background-color: #000000 !important;
+}
+
+/* Hover states for list items */
+.high-contrast [class*='hover:bg-dark']:hover {
+  background-color: #333333 !important;
 }

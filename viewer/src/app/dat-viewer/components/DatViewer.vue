@@ -2,7 +2,7 @@
   <viewer-actions />
   <div class="flex flex-1">
     <resize-observer class="relative min-h-0 flex-1" @resize="handleResize">
-      <div class="absolute bg-dark-800" :style="headerBlockStyle">
+      <div class="absolute bg-dark-100 dark:bg-dark-800" :style="headerBlockStyle">
         <viewer-head
           :style="headerOverlayContentStyle"
           :left="scrollLeft"
@@ -12,7 +12,7 @@
       </div>
       <canvas-scroll
         ref="canvasScroll"
-        class="absolute bg-dark-900"
+        class="absolute bg-white dark:bg-dark-900"
         :style="scrollableStyle"
         :paint-size="scrollablePaintSize"
         :full-size="scrollableFullSize"

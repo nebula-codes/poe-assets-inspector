@@ -1,4 +1,4 @@
-import { CHAR_WIDTH, LINE_HEIGHT, isDarkMode } from '../rendering.js'
+import { CHAR_WIDTH, LINE_HEIGHT, isDarkMode, isHighContrast } from '../rendering.js'
 import {
   type DatFile,
   type Header as DatHeader,
@@ -29,8 +29,20 @@ const LIGHT_SYNTAX_COLORS = {
   hex: '#64748b', // slate-500 for hex dumps
 }
 
+// High contrast theme syntax colors - maximum visibility
+const HIGH_CONTRAST_SYNTAX_COLORS = {
+  number: '#00ff00', // bright green for numbers
+  boolean: '#00bfff', // bright cyan-blue for booleans
+  string: '#ffff00', // bright yellow for strings
+  null: '#ff4444', // bright red for null values
+  key: '#ff00ff', // bright magenta for keys/references
+  muted: '#888888', // gray for empty/muted values
+  hex: '#ffffff', // white for hex dumps
+}
+
 // Get current syntax colors based on theme
 function getSyntaxColors() {
+  if (isHighContrast()) return HIGH_CONTRAST_SYNTAX_COLORS
   return isDarkMode() ? DARK_SYNTAX_COLORS : LIGHT_SYNTAX_COLORS
 }
 

@@ -211,7 +211,10 @@
     />
 
     <!-- Tab bar -->
-    <div v-if="openFiles.length" class="flex items-center border-b border-dark-700 bg-dark-800/50">
+    <div
+      v-if="openFiles.length"
+      class="flex items-center border-b border-dark-300 bg-dark-100/50 dark:border-dark-700 dark:bg-dark-800/50"
+    >
       <!-- Tabs -->
       <div class="flex flex-1 items-center gap-1 overflow-x-auto px-2 py-1">
         <button
@@ -220,15 +223,15 @@
           :class="[
             'group flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors',
             activeFileId === file.id
-              ? 'bg-dark-700 text-dark-100'
-              : 'text-dark-400 hover:bg-dark-700/50 hover:text-dark-200',
+              ? 'bg-dark-200 text-dark-900 dark:bg-dark-700 dark:text-dark-100'
+              : 'text-dark-600 hover:bg-dark-200/50 hover:text-dark-800 dark:text-dark-400 dark:hover:bg-dark-700/50 dark:hover:text-dark-200',
           ]"
           @click="activeFileId = file.id"
         >
           <FileText class="h-4 w-4 shrink-0" />
           <span class="max-w-32 truncate">{{ file.title }}</span>
           <button
-            class="ml-1 rounded p-0.5 opacity-0 transition-opacity hover:bg-dark-600 group-hover:opacity-100"
+            class="ml-1 rounded p-0.5 opacity-0 transition-opacity hover:bg-dark-300 group-hover:opacity-100 dark:hover:bg-dark-600"
             @click.stop="closeFile(file.id)"
           >
             <X class="h-3 w-3" />
@@ -237,7 +240,7 @@
       </div>
 
       <!-- Tab actions -->
-      <div class="flex items-center gap-1 border-l border-dark-700 px-2">
+      <div class="flex items-center gap-1 border-l border-dark-300 px-2 dark:border-dark-700">
         <button class="btn-icon btn-ghost p-1.5" title="Export" @click="exportActiveFile">
           <Download class="h-4 w-4" />
         </button>
@@ -256,10 +259,10 @@
     <div class="relative flex-1 overflow-hidden">
       <!-- Empty state -->
       <div v-if="!openFiles.length" class="flex h-full flex-col items-center justify-center p-8">
-        <div class="mb-6 rounded-2xl bg-dark-800 p-6">
-          <Table class="h-16 w-16 text-dark-600" />
+        <div class="mb-6 rounded-2xl bg-dark-200 p-6 dark:bg-dark-800">
+          <Table class="h-16 w-16 text-dark-400 dark:text-dark-600" />
         </div>
-        <h2 class="text-xl font-semibold text-dark-200">No files open</h2>
+        <h2 class="text-xl font-semibold text-dark-800 dark:text-dark-200">No files open</h2>
         <p class="mt-2 text-dark-500">Open a .datc64 file to start exploring</p>
 
         <div class="mt-8 flex gap-4">
@@ -283,7 +286,7 @@
           v-for="file in openFiles"
           v-show="activeFileId === file.id"
           :key="file.id"
-          class="absolute inset-0 flex flex-col bg-dark-900"
+          class="absolute inset-0 flex flex-col bg-white dark:bg-dark-900"
         >
           <DatViewer
             v-model:ka-state="file.state as any"
@@ -296,14 +299,16 @@
       <!-- Drop zone overlay -->
       <div
         v-if="showDropzone"
-        class="absolute inset-0 z-50 flex items-center justify-center bg-dark-900/90 backdrop-blur-sm"
+        class="absolute inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm dark:bg-dark-900/90"
       >
         <div
           class="rounded-xl border-2 border-dashed border-primary-500 bg-primary-600/10 p-12 text-center"
         >
-          <Upload class="mx-auto h-12 w-12 text-primary-400" />
-          <p class="mt-4 text-lg font-medium text-dark-100">Drop file to open</p>
-          <p class="mt-1 text-sm text-dark-400">Supports .datc64 and .dat files</p>
+          <Upload class="mx-auto h-12 w-12 text-primary-500 dark:text-primary-400" />
+          <p class="mt-4 text-lg font-medium text-dark-900 dark:text-dark-100">Drop file to open</p>
+          <p class="mt-1 text-sm text-dark-600 dark:text-dark-400">
+            Supports .datc64 and .dat files
+          </p>
         </div>
       </div>
     </div>
