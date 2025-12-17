@@ -22,7 +22,7 @@
 </script>
 
 <template>
-  <div class="flex h-screen w-full overflow-hidden bg-dark-900">
+  <div class="flex h-screen w-full overflow-hidden bg-dark-100 dark:bg-dark-900">
     <!-- Sidebar -->
     <TheSidebar />
 

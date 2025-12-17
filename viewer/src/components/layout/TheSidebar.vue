@@ -149,17 +149,19 @@
 
 <template>
   <aside
-    class="flex h-full flex-col border-r border-dark-700 bg-dark-800/50 transition-all duration-300"
+    class="flex h-full flex-col border-r border-dark-200 bg-dark-50 transition-all duration-300 dark:border-dark-700 dark:bg-dark-800/50"
     :class="appStore.sidebarCollapsed ? 'w-16' : 'w-72'"
   >
     <!-- Logo -->
-    <div class="flex h-16 items-center justify-between border-b border-dark-700 px-4">
+    <div
+      class="flex h-16 items-center justify-between border-b border-dark-200 px-4 dark:border-dark-700"
+    >
       <div v-if="!appStore.sidebarCollapsed" class="flex items-center gap-3">
         <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
           <Database class="h-4 w-4 text-white" />
         </div>
         <div>
-          <h1 class="text-sm font-semibold text-dark-100">PoE DAT Studio</h1>
+          <h1 class="text-sm font-semibold text-dark-900 dark:text-dark-100">PoE DAT Studio</h1>
           <p class="text-xs text-dark-500">Data Explorer</p>
         </div>
       </div>
@@ -182,8 +184,8 @@
             :class="[
               'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
               isActiveRoute(item.route)
-                ? 'bg-primary-600/20 text-primary-400'
-                : 'text-dark-400 hover:bg-dark-700 hover:text-dark-100',
+                ? 'bg-primary-600/20 text-primary-600 dark:text-primary-400'
+                : 'text-dark-600 hover:bg-dark-200 hover:text-dark-900 dark:text-dark-400 dark:hover:bg-dark-700 dark:hover:text-dark-100',
             ]"
             :title="appStore.sidebarCollapsed ? item.name : undefined"
           >
@@ -195,7 +197,7 @@
     </nav>
 
     <!-- Divider -->
-    <div class="mx-3 my-2 h-px bg-dark-700" />
+    <div class="mx-3 my-2 h-px bg-dark-200 dark:bg-dark-700" />
 
     <!-- File Explorer (only when not collapsed) -->
     <template v-if="!appStore.sidebarCollapsed">
@@ -233,8 +235,8 @@
             :class="[
               'rounded px-2 py-0.5 text-xs transition-colors',
               opt.active
-                ? 'bg-primary-600/30 text-primary-300'
-                : 'bg-dark-700 text-dark-400 hover:bg-dark-600',
+                ? 'bg-primary-600/30 text-primary-400 dark:text-primary-300'
+                : 'bg-dark-200 text-dark-600 hover:bg-dark-300 dark:bg-dark-700 dark:text-dark-400 dark:hover:bg-dark-600',
             ]"
             @click="opt.handleClick"
           >
@@ -250,7 +252,7 @@
           >
             <div class="flex items-center gap-2">
               <div
-                class="h-4 w-4 animate-spin rounded-full border-2 border-dark-600 border-t-primary-500"
+                class="h-4 w-4 animate-spin rounded-full border-2 border-dark-300 border-t-primary-500 dark:border-dark-600"
               />
               <span>Loading index...</span>
             </div>
@@ -268,16 +270,18 @@
               <button
                 v-for="entry in entries"
                 :key="entry.item.fullPath"
-                class="absolute flex w-full items-center gap-2 px-3 py-1 text-left text-sm text-dark-300 transition-colors hover:bg-dark-700 hover:text-dark-100"
-                :class="{ 'bg-primary-600/20 text-primary-400': entry.item.isActive }"
+                class="absolute flex w-full items-center gap-2 px-3 py-1 text-left text-sm text-dark-600 transition-colors hover:bg-dark-200 hover:text-dark-900 dark:text-dark-300 dark:hover:bg-dark-700 dark:hover:text-dark-100"
+                :class="{
+                  'bg-primary-600/20 text-primary-600 dark:text-primary-400': entry.item.isActive,
+                }"
                 :style="{ transform: `translateY(${entry.top}px)` }"
                 @click="handleTreeNav(entry.item)"
               >
                 <template v-if="!entry.item.isFile">
-                  <FolderOpen v-if="entry.item.label === '../'" class="h-4 w-4 text-amber-400" />
-                  <Folder v-else class="h-4 w-4 text-amber-400" />
+                  <FolderOpen v-if="entry.item.label === '../'" class="h-4 w-4 text-amber-500" />
+                  <Folder v-else class="h-4 w-4 text-amber-500" />
                 </template>
-                <File v-else class="h-4 w-4 text-dark-500" />
+                <File v-else class="h-4 w-4 text-dark-400 dark:text-dark-500" />
                 <span class="truncate">{{ entry.item.label }}</span>
               </button>
             </template>
@@ -292,13 +296,13 @@
     <!-- Footer -->
     <div
       v-if="!appStore.sidebarCollapsed"
-      class="border-t border-dark-700 p-4 text-xs text-dark-500"
+      class="border-t border-dark-200 p-4 text-xs text-dark-500 dark:border-dark-700"
     >
       <p>Version {{ $attrs['app-version'] || 'dev' }}</p>
       <a
         href="https://github.com/SnosMe/poe-dat-viewer"
         target="_blank"
-        class="text-primary-400 hover:underline"
+        class="text-primary-500 hover:underline dark:text-primary-400"
       >
         Original by SnosMe
       </a>
