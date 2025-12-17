@@ -1,9 +1,7 @@
 <script setup lang="ts">
   import { computed } from 'vue'
   import {
-    Monitor,
     Moon,
-    Sun,
     Contrast,
     Type,
     Hash,
@@ -20,11 +18,9 @@
 
   const settingsStore = useSettingsStore()
 
-  const themeOptions: { value: Theme; label: string; icon: typeof Sun }[] = [
+  const themeOptions: { value: Theme; label: string; icon: typeof Moon }[] = [
     { value: 'dark', label: 'Dark', icon: Moon },
-    { value: 'light', label: 'Light', icon: Sun },
     { value: 'high-contrast', label: 'High Contrast', icon: Contrast },
-    { value: 'system', label: 'System', icon: Monitor },
   ]
 
   const fontSizes = [10, 11, 12, 13, 14, 15, 16, 18, 20]

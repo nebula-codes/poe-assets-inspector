@@ -3,7 +3,7 @@ import type { RenderByte } from './rendering/byte-columns.js'
 import type { Viewer } from './Viewer.js'
 import { renderCellContent, drawByteView, drawArrayVarData } from './rendering/content.js'
 
-// Theme colors - supports light, dark, and high contrast modes
+// Theme colors - dark and high contrast modes
 const DARK_COLORS = {
   background: '#0f172a',
   backgroundAlt: '#1e293b',
@@ -13,17 +13,6 @@ const DARK_COLORS = {
   selection: 'rgba(14, 165, 233, 0.2)',
   selectionText: '#38bdf8',
   shadow: 'rgba(0, 0, 0, 0.3)',
-}
-
-const LIGHT_COLORS = {
-  background: '#ffffff',
-  backgroundAlt: '#f8fafc',
-  text: '#1e293b',
-  textMuted: '#64748b',
-  border: '#e2e8f0',
-  selection: 'rgba(14, 165, 233, 0.15)',
-  selectionText: '#0284c7',
-  shadow: 'rgba(0, 0, 0, 0.1)',
 }
 
 const HIGH_CONTRAST_COLORS = {
@@ -37,11 +26,6 @@ const HIGH_CONTRAST_COLORS = {
   shadow: 'rgba(255, 255, 255, 0.1)',
 }
 
-// Function to detect if dark mode is active
-export function isDarkMode(): boolean {
-  return document.documentElement.classList.contains('dark')
-}
-
 // Function to detect if high contrast mode is active
 export function isHighContrast(): boolean {
   return document.documentElement.classList.contains('high-contrast')
@@ -49,8 +33,7 @@ export function isHighContrast(): boolean {
 
 // Get current theme colors
 export function getColors() {
-  if (isHighContrast()) return HIGH_CONTRAST_COLORS
-  return isDarkMode() ? DARK_COLORS : LIGHT_COLORS
+  return isHighContrast() ? HIGH_CONTRAST_COLORS : DARK_COLORS
 }
 
 // For backwards compatibility, export COLORS that updates based on theme

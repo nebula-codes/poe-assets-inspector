@@ -1,4 +1,4 @@
-import { CHAR_WIDTH, LINE_HEIGHT, isDarkMode, isHighContrast } from '../rendering.js'
+import { CHAR_WIDTH, LINE_HEIGHT, isHighContrast } from '../rendering.js'
 import {
   type DatFile,
   type Header as DatHeader,
@@ -18,17 +18,6 @@ const DARK_SYNTAX_COLORS = {
   hex: '#94a3b8', // slate-400 for hex dumps
 }
 
-// Light theme syntax colors
-const LIGHT_SYNTAX_COLORS = {
-  number: '#16a34a', // green-600 for numbers/integers/decimals
-  boolean: '#2563eb', // blue-600 for booleans
-  string: '#d97706', // amber-600 for strings
-  null: '#dc2626', // red-600 for null values
-  key: '#7c3aed', // violet-600 for keys/references
-  muted: '#94a3b8', // slate-400 for empty/muted values
-  hex: '#64748b', // slate-500 for hex dumps
-}
-
 // High contrast theme syntax colors - maximum visibility
 const HIGH_CONTRAST_SYNTAX_COLORS = {
   number: '#00ff00', // bright green for numbers
@@ -42,8 +31,7 @@ const HIGH_CONTRAST_SYNTAX_COLORS = {
 
 // Get current syntax colors based on theme
 function getSyntaxColors() {
-  if (isHighContrast()) return HIGH_CONTRAST_SYNTAX_COLORS
-  return isDarkMode() ? DARK_SYNTAX_COLORS : LIGHT_SYNTAX_COLORS
+  return isHighContrast() ? HIGH_CONTRAST_SYNTAX_COLORS : DARK_SYNTAX_COLORS
 }
 
 interface StringifyOut {

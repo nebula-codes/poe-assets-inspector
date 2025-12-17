@@ -5,20 +5,7 @@
 
 @layer base {
   :root {
-    /* Light theme (default) */
-    --color-bg-base: theme('colors.dark.50');
-    --color-bg-surface: theme('colors.white');
-    --color-bg-elevated: theme('colors.dark.100');
-    --color-bg-muted: theme('colors.dark.200');
-    --color-border: theme('colors.dark.300');
-    --color-border-muted: theme('colors.dark.200');
-    --color-text-primary: theme('colors.dark.900');
-    --color-text-secondary: theme('colors.dark.600');
-    --color-text-muted: theme('colors.dark.500');
-  }
-
-  .dark {
-    /* Dark theme */
+    /* Dark theme (default) */
     --color-bg-base: theme('colors.dark.900');
     --color-bg-surface: theme('colors.dark.800');
     --color-bg-elevated: theme('colors.dark.700');
@@ -31,7 +18,7 @@
   }
 
   .high-contrast {
-    /* High contrast theme - built on top of dark */
+    /* High contrast theme */
     --color-bg-base: #000000;
     --color-bg-surface: #0a0a0a;
     --color-bg-elevated: #1a1a1a;
