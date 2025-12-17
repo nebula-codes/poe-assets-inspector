@@ -1,19 +1,7 @@
 <script setup lang="ts">
   import { ref, computed, inject, watch, onMounted, onUnmounted } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import {
-    Search,
-    Bell,
-    Upload,
-    Settings,
-    HelpCircle,
-    RefreshCw,
-    FolderOpen,
-    Globe,
-    File,
-    Folder,
-    X,
-  } from 'lucide-vue-next'
+  import { Search, Settings, HelpCircle, RefreshCw, File, Folder, X } from 'lucide-vue-next'
   import { useAppStore, useSettingsStore } from '@/stores'
   import type { BundleIndex } from '@/app/patchcdn/index-store'
 
@@ -24,7 +12,6 @@
 
   const index = inject<BundleIndex>('bundle-index')!
 
-  const showImportDropdown = ref(false)
   const searchQuery = ref('')
   const searchInputRef = ref<HTMLInputElement | null>(null)
   const showSearchResults = ref(false)
@@ -244,20 +231,6 @@
     return parts
   })
 
-  // Import handlers
-  async function handleLocalImport() {
-    showImportDropdown.value = false
-    // Will be implemented in ViewerView
-    const event = new CustomEvent('open-local-file')
-    window.dispatchEvent(event)
-  }
-
-  async function handleCDNImport() {
-    showImportDropdown.value = false
-    const event = new CustomEvent('open-cdn-dialog')
-    window.dispatchEvent(event)
-  }
-
   function handleRefresh() {
     window.location.reload()
   }
@@ -403,32 +376,6 @@
 
     <!-- Right side -->
     <div class="flex items-center gap-2">
-      <!-- Import button with dropdown -->
-      <div class="relative">
-        <button
-          class="btn-secondary flex items-center gap-2"
-          @click="showImportDropdown = !showImportDropdown"
-        >
-          <Upload class="h-4 w-4" />
-          <span>Import</span>
-        </button>
-
-        <!-- Dropdown -->
-        <div v-if="showImportDropdown" class="dropdown right-0 mt-2 w-56" @click.stop>
-          <button class="dropdown-item w-full" @click="handleLocalImport">
-            <FolderOpen class="h-4 w-4" />
-            <span>Open Local File</span>
-          </button>
-          <button class="dropdown-item w-full" @click="handleCDNImport">
-            <Globe class="h-4 w-4" />
-            <span>Import from Patch CDN</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Divider -->
-      <div class="mx-2 h-6 w-px bg-dark-300 dark:bg-dark-700" />
-
       <!-- Action buttons -->
       <button class="btn-icon btn-ghost" title="Refresh" @click="handleRefresh">
         <RefreshCw class="h-5 w-5" />
@@ -436,11 +383,6 @@
 
       <button class="btn-icon btn-ghost" title="Help">
         <HelpCircle class="h-5 w-5" />
-      </button>
-
-      <button class="btn-icon btn-ghost relative" title="Notifications">
-        <Bell class="h-5 w-5" />
-        <span class="absolute right-1 top-1 h-2 w-2 rounded-full bg-primary-500" />
       </button>
 
       <!-- User avatar / Settings -->
@@ -453,7 +395,4 @@
       </router-link>
     </div>
   </header>
-
-  <!-- Click outside to close dropdown -->
-  <div v-if="showImportDropdown" class="fixed inset-0 z-40" @click="showImportDropdown = false" />
 </template>
